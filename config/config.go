@@ -28,5 +28,8 @@ func ConnectDB(){
 	DB.AutoMigrate(
 		&models.User{},
 		&models.Book{},
+		&models.Author{},
+		&models.Category{},
+		&models.Publications{},
 	)
 }
