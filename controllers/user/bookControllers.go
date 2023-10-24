@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
@@ -19,4 +20,17 @@ func GetBook(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK,book)
+}
+
+func ViewBooks(c *gin.Context) {
+	page,_ :=strconv.Atoi(c.DefaultQuery("page","1"))
+	pageSize,_ :=strconv.Atoi(c.DefaultQuery("pageSize","5"))
+
+	var books []models.Book
+
+	offset := (page - 1)* pageSize
+
+	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&books)
+
+	c.JSON(http.StatusOK,books)
 }

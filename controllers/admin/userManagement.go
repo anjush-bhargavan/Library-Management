@@ -6,6 +6,8 @@ import (
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func ViewUser(c *gin.Context) {
@@ -29,6 +31,30 @@ func AddUser(c *gin.Context) {
 		c.JSON(http.StatusBadGateway,gin.H{"error":"Binding error"})
 		return
 	}
+	var existingUser models.User
+	if err := config.DB.Where("email = ?",user.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusConflict,gin.H{"error":"Email already in use"})
+		return
+	}else if err !=  gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		return
+	}
+
+	if err := config.DB.Where("phone = ?",user.Phone).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusConflict,gin.H{"error":"Phone number already in use"})
+		return
+	}else if err !=  gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		return
+	}
+
+	hashedPassword,err := bcrypt.GenerateFromPassword([]byte(user.Password),bcrypt.DefaultCost)
+	if err != nil{
+		c.JSON(http.StatusInternalServerError, gin.H{ "error":"Failed to hash password",
+	})
+	return
+	}
+	user.Password=string(hashedPassword)
 
 	config.DB.Create(&user)
 	c.JSON(http.StatusOK,gin.H{"message":"User created succesfully"})

@@ -6,7 +6,22 @@ import (
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
+
+
+func GetBook(c *gin.Context) {
+	id :=c.Param("id")
+	var book models.Book
+
+	if err :=config.DB.First(&book,id).Error; err != nil {
+		c.JSON(http.StatusNotFound,gin.H{"error" :"Failed to fetch book"})
+		return
+	}
+
+	c.JSON(http.StatusOK,book)
+}
+
 
 func AddBooks(c *gin.Context) {
 	var book models.Book
@@ -15,6 +30,14 @@ func AddBooks(c *gin.Context) {
 		c.JSON(http.StatusBadGateway,gin.H{
 			"error" : "Binding error",
 		})
+		return
+	}
+	var existingBook models.Book
+	if err := config.DB.Where("name = ?",book.Book_Name).First(&existingBook).Error; err == nil {
+		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
+		return
+	}else if err !=  gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
 		return
 	}
 

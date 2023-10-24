@@ -21,7 +21,17 @@ func userRoutes(r *gin.Engine){
 	{
 		userGroup.GET("/home",controllers.HomePage)
 		userGroup.GET("home/book/:id",user.GetBook)
-		userGroup.GET("/logout",)
+		userGroup.GET("home/viewbooks",user.ViewBooks)
+		userGroup.GET("/logout",controllers.UserLogout)
+
+		userGroup.GET("/profile")
+		userGroup.GET("/profile/update")
+		userGroup.PUT("/profile/update")
+		userGroup.GET("/profile/membership")
+		userGroup.POST("/profile/memebership")
+		userGroup.GET("/profile/viewfine")
+		userGroup.POST("/profile/payfine")
+		userGroup.GET("/profile/viewhistory")
 	}
 	
 
