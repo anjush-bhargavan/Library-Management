@@ -10,13 +10,14 @@ import (
 	"gorm.io/gorm"
 )
 
-
+//UserLoginPage handles get login page
 func UserLoginPage(c *gin.Context){
 	c.JSON(200,gin.H{
 		"message":"Login with email & password",
 	})
 }
 
+//UserLogin handles login and create jwt token
 func UserLogin(c *gin.Context){
 	type login struct {
 		Email     string    `json:"email"`
@@ -59,12 +60,14 @@ func UserLogin(c *gin.Context){
 
 }
 
+//UserSignupPage handles get signup page
 func  UserSignupPage(c *gin.Context){
 	c.JSON(200,gin.H{
 		"message":"Sign up to Continue",
 	})
 }
 
+//UserSignup handles post signup form and validation
 func UserSignup(c *gin.Context){
 	var user models.User
 
@@ -105,6 +108,8 @@ func UserSignup(c *gin.Context){
 
 }
 
+
+//HomePage handles get homepage
 func HomePage(c *gin.Context){
 	data,_:=c.Get("email")
 	email:=data.(string)
@@ -113,6 +118,8 @@ func HomePage(c *gin.Context){
 	})
 }
 
+
+//UserLogout handles logout
 func UserLogout(c *gin.Context) {
 	c.Redirect(http.StatusSeeOther,"/login")
 }

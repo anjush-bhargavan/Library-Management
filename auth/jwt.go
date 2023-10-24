@@ -6,14 +6,14 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-
+//Claims that passing via jwt token
 type Claims struct {
 	Email   string   		`json:"email"`
 	Role    string          `json:"role"`
 	jwt.StandardClaims
 }
 
-
+//GenerateToken to generate jwt token
 func GenerateToken(userEmail string, userRole string) (string,error){
 	claims:=Claims{
 		userEmail,

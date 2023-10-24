@@ -12,7 +12,7 @@ func main() {
 	r:=gin.Default()
 	config.ConnectDB()
 
-	routes.RoutesConfig(r)
+	routes.ConfigRoutes(r)
 
 	r.Run("localhost:8080")
 }

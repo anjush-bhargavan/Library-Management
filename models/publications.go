@@ -1,8 +1,9 @@
 package models
 
+//Publications model of publications
 type Publications struct {
 
-	Publications_Id      uint64
-	Publications_Name    string
+	PublicationsID      uint64
+	PublicationsName    string
 	
 }

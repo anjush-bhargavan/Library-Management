@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
+//AdminAuth to handle admin authentication
 func AdminAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString:= c.GetHeader("Authorization")

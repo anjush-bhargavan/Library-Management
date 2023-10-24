@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
+//GetBook handles get book by id
 func GetBook(c *gin.Context) {
 	id :=c.Param("id")
 	var book models.Book
@@ -22,6 +22,7 @@ func GetBook(c *gin.Context) {
 	c.JSON(http.StatusOK,book)
 }
 
+//ViewBooks handles view all books by pagination
 func ViewBooks(c *gin.Context) {
 	page,_ :=strconv.Atoi(c.DefaultQuery("page","1"))
 	pageSize,_ :=strconv.Atoi(c.DefaultQuery("pageSize","5"))

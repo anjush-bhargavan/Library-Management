@@ -2,7 +2,7 @@ package middleware
 
 import "github.com/gin-gonic/gin"
 
-
+//ClearCache to handle the session
 func ClearCache() gin.HandlerFunc{
 	return func(c *gin.Context) {
 		c.Header("Cache-Control", "no-cache, no-store, must-revalidate")

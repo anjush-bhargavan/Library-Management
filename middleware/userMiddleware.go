@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
+//UserAuth to handle user authentication
 func UserAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString := c.GetHeader("Authorization")

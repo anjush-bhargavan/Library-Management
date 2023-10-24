@@ -7,7 +7,7 @@ import (
 )
 
 
-
+//function to handle admin side routes
 func adminRoutes(r *gin.Engine) {
 
 	r.Use(middleware.AdminAuth())

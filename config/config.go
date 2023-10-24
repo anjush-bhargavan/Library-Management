@@ -10,9 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-
+//DB variable globally declared
 var DB *gorm.DB
 
+//ConnectDB to connect database
 func ConnectDB(){
 	err1 := godotenv.Load(".env")
 	if err1 != nil {

@@ -1,9 +1,9 @@
 package models
 
-
+//Category model of category
 type Category struct {
 
-	Category_Id    uint64
-	Category_Name  string
+	CategoryID     uint64
+	CategoryName  string
 	
 }

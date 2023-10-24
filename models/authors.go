@@ -1,11 +1,11 @@
 package models
 
-
+//Author model of author details
 type Author struct {
-	Author_Id     uint64
-	First_name    string
-	Last_Name     string
+	AuthorID     uint64
+	FirstName    string
+	LastName     string
 	Language      string
 	Remarks       string
 
-}
+} 

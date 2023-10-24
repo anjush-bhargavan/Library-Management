@@ -6,8 +6,8 @@ import (
 )
 
 
-
-func RoutesConfig(r *gin.Engine){
+//ConfigRoutes to handle routes
+func ConfigRoutes(r *gin.Engine){
 
 	r.Use(middleware.ClearCache())
 

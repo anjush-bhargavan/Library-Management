@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
+//BookRoutes to handle book management on admin side
 func BookRoutes(r *gin.Engine) {
 
 	r.GET("/book/:id",admin.GetBook)

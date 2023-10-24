@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-
+//GetBook handles show book by id
 func GetBook(c *gin.Context) {
 	id :=c.Param("id")
 	var book models.Book
@@ -22,7 +22,7 @@ func GetBook(c *gin.Context) {
 	c.JSON(http.StatusOK,book)
 }
 
-
+// AddBooks handle admin to add books pto database
 func AddBooks(c *gin.Context) {
 	var book models.Book
 
@@ -33,7 +33,7 @@ func AddBooks(c *gin.Context) {
 		return
 	}
 	var existingBook models.Book
-	if err := config.DB.Where("name = ?",book.Book_Name).First(&existingBook).Error; err == nil {
+	if err := config.DB.Where("name = ?",book.BookName).First(&existingBook).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
 		return
 	}else if err !=  gorm.ErrRecordNotFound {
@@ -45,6 +45,7 @@ func AddBooks(c *gin.Context) {
 	c.JSON(200,gin.H{"message":"book added succesfully"})
 }
 
+//ViewBooks handles admin to view all books in database
 func ViewBooks(c *gin.Context) {
 
 	var books []models.Book
@@ -54,6 +55,7 @@ func ViewBooks(c *gin.Context) {
 	c.JSON(http.StatusOK,books)
 }
 
+//UpdateBook handles admin to update book details
 func UpdateBook(c *gin.Context) {
 	id :=c.Param("id")
 	var book models.Book
@@ -72,6 +74,7 @@ func UpdateBook(c *gin.Context) {
 	c.JSON(http.StatusOK,book)
 }
 
+//DeleteBook handles admin to delete book by id
 func DeleteBook(c *gin.Context) {
 	id :=c.Param("id")
 	var book models.Book

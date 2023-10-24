@@ -8,7 +8,7 @@ import (
 )
 
 
-
+//function to handle user side routes
 func userRoutes(r *gin.Engine){
 
 	r.GET("/login",controllers.UserLoginPage)

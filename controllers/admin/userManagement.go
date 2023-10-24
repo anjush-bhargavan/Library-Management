@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//ViewUser handles admin to view a user details
 func ViewUser(c *gin.Context) {
 	id :=c.Param("id")
 	var user models.User
@@ -24,6 +25,7 @@ func ViewUser(c *gin.Context) {
 	c.JSON(http.StatusOK,user)
 }
 
+//AddUser handles the admin to add user to database
 func AddUser(c *gin.Context) {
 	var user models.User
 
@@ -60,6 +62,7 @@ func AddUser(c *gin.Context) {
 	c.JSON(http.StatusOK,gin.H{"message":"User created succesfully"})
 }
 
+//UpdateUser handles the admin to update user details
 func UpdateUser(c *gin.Context) {
 	id :=c.Param("id")
 	var user models.User
@@ -80,6 +83,7 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK,user)
 }
 
+//DeleteUser handles admin to delete user by id
 func DeleteUser(c *gin.Context) {
 	id :=c.Param("id")
 	var user models.User
