@@ -9,10 +9,12 @@ import (
 
 
 func main() {
+	config.Loadenv()
 	r:=gin.Default()
 	config.ConnectDB()
+	config.InitRedis()
 
 	routes.ConfigRoutes(r)
 
-	r.Run("localhost:8080")
+	r.Run("localhost:8081")
 }

@@ -15,6 +15,8 @@ func userRoutes(r *gin.Engine){
 	r.POST("/login",controllers.UserLogin)
 	r.GET("/signup",controllers.UserSignupPage)
 	r.POST("/signup",controllers.UserSignup)
+	r.GET("/verifyotp",controllers.VerifyOTPPage)
+	r.POST("/verifyotp",controllers.VerifyOTP)
 
 	userGroup:=r.Group("/user")
 	userGroup.Use(middleware.UserAuth())

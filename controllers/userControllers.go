@@ -1,7 +1,11 @@
 package controllers
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 	"github.com/anjush-bhargavan/library-management/auth"
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
@@ -16,6 +20,7 @@ func UserLoginPage(c *gin.Context){
 		"message":"Login with email & password",
 	})
 }
+
 
 //UserLogin handles login and create jwt token
 func UserLogin(c *gin.Context){
@@ -60,12 +65,17 @@ func UserLogin(c *gin.Context){
 
 }
 
+
 //UserSignupPage handles get signup page
 func  UserSignupPage(c *gin.Context){
 	c.JSON(200,gin.H{
 		"message":"Sign up to Continue",
 	})
 }
+
+
+var ctx = context.Background()
+
 
 //UserSignup handles post signup form and validation
 func UserSignup(c *gin.Context){
@@ -102,10 +112,73 @@ func UserSignup(c *gin.Context){
 	}
 	user.Password=string(hashedPassword)
 	
-	config.DB.Create(&user)
+	otp:=auth.GenerateOTP(6)
+	auth.SendOTPByEmail(otp,user.Email)
 
-	c.JSON(200,gin.H{"message":"Signup successful"})
+	jsonData, err := json.Marshal(user)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,gin.H{"error":"Failed to marshal json data"})
+		return
+	}
+	
+	if err := config.Client.Set(ctx,"otp",otp,30*time.Second).Err(); err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
+		return
+	}
+	if err := config.Client.Set(ctx,"user",jsonData,30*time.Second).Err(); err != nil {
+		c.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
+		return
+	}
+	
+	
+	fmt.Println(otp)
 
+
+	c.JSON(http.StatusOK,gin.H{"message":"go to verfication page"})
+
+}
+
+
+//VerifyOTPPage shows the verify otp
+func VerifyOTPPage(c *gin.Context) {
+	c.JSON(200,gin.H{"message":"verify otp"})
+}
+
+
+//VerifyOTP handles verifying otp and saving user data in database
+func VerifyOTP(c *gin.Context) {
+	var userData models.User
+	type OTPString struct{
+		Otp string `json:"otp"`
+	}
+	var user OTPString 
+	if err :=c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadGateway,gin.H{
+			"error" : "Binding error",
+		})
+		return
+	}
+	if user.Otp ==""{
+		c.JSON(http.StatusNotFound,gin.H{"error":"otp not entered"})
+		return
+	}
+	otp,err:=config.Client.Get(ctx,"otp").Result()
+	if err != nil {
+		c.JSON(http.StatusNotFound,gin.H{"error":"otp not found"})
+		return
+	}
+	if auth.ValidateOTP(otp,user.Otp) {
+		user,err := config.Client.Get(ctx,"user").Result()
+		if err != nil {
+			c.JSON(http.StatusNotFound,gin.H{"error":"user details missing"})
+		}
+		err = json.Unmarshal([]byte(user),&userData)
+		if err != nil {
+			c.JSON(http.StatusNotFound,gin.H{"error":"error in unmarshaling json data"})
+		}
+		config.DB.Create(&userData)
+		c.JSON(http.StatusOK,gin.H{"message":"signup successful"})
+	}
 }
 
 
