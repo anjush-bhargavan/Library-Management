@@ -25,6 +25,17 @@ func ViewUser(c *gin.Context) {
 	c.JSON(http.StatusOK,user)
 }
 
+
+//ViewUsers function shows all users
+func ViewUsers(c *gin.Context) {
+	var users []models.User
+
+	config.DB.Find(&users)
+
+	c.JSON(http.StatusOK,users)
+}
+
+
 //AddUser handles the admin to add user to database
 func AddUser(c *gin.Context) {
 	var user models.User

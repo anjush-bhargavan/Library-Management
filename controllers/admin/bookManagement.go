@@ -33,7 +33,7 @@ func AddBooks(c *gin.Context) {
 		return
 	}
 	var existingBook models.Book
-	if err := config.DB.Where("name = ?",book.BookName).First(&existingBook).Error; err == nil {
+	if err := config.DB.Where("book_name = ?",book.BookName).First(&existingBook).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
 		return
 	}else if err !=  gorm.ErrRecordNotFound {

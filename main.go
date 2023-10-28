@@ -16,5 +16,5 @@ func main() {
 
 	routes.ConfigRoutes(r)
 
-	r.Run("localhost:8081")
+	r.Run("localhost:8080")
 }
