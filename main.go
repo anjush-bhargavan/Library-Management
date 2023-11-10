@@ -13,7 +13,7 @@ func main() {
 	r:=gin.Default()
 	config.ConnectDB()
 	config.InitRedis()
-
+	r.LoadHTMLGlob("templates/*.html")
 	routes.ConfigRoutes(r)
 
 	r.Run("localhost:8080")

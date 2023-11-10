@@ -7,39 +7,47 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// function to handle user side routes
+func userRoutes(r *gin.Engine) {
 
-//function to handle user side routes
-func userRoutes(r *gin.Engine){
+	r.GET("/login", controllers.UserLoginPage)
+	r.POST("/login", controllers.UserLogin)
+	r.GET("/signup", controllers.UserSignupPage)
+	r.POST("/signup", controllers.UserSignup)
+	r.GET("/verifyotp", controllers.VerifyOTPPage)
+	r.POST("/verifyotp", controllers.VerifyOTP)
 
-	r.GET("/login",controllers.UserLoginPage)
-	r.POST("/login",controllers.UserLogin)
-	r.GET("/signup",controllers.UserSignupPage)
-	r.POST("/signup",controllers.UserSignup)
-	r.GET("/verifyotp",controllers.VerifyOTPPage)
-	r.POST("/verifyotp",controllers.VerifyOTP)
-
-	userGroup:=r.Group("/user")
-	userGroup.Use(middleware.UserAuth())
+	userGroup := r.Group("/user")
+	userGroup.Use(middleware.Authorization("user"))
 	{
-		userGroup.GET("/home",controllers.HomePage)
-		userGroup.GET("home/book/:id",user.GetBook)
-		userGroup.GET("home/viewbooks",user.ViewBooks)
-		userGroup.GET("/logout",controllers.UserLogout)
+		userGroup.GET("/home", controllers.HomePage)
+		userGroup.GET("home/book/:id", user.GetBook)
+		userGroup.GET("home/books", user.ViewBooks)
+		userGroup.GET("/logout", controllers.UserLogout)
 
-		userGroup.GET("/profile")
-		userGroup.GET("/profile/update",user.UserProfile)
-		userGroup.PUT("/profile/update",user.ProfileUpdate)
-		userGroup.GET("/profile/membership")
-		userGroup.POST("/profile/memebership")
+		userGroup.GET("/profile", user.UserProfile)
+		userGroup.PUT("/profile", user.ProfileUpdate)
+		userGroup.PATCH("/profile/changepassword", user.ChangePassword)
+
+		userGroup.GET("profile/plans", user.ShowPlans)
+		userGroup.POST("profile/plans", user.GetPlan)
+
 		userGroup.GET("/profile/viewfine")
 		userGroup.POST("/profile/payfine")
-		userGroup.GET("/profile/viewhistory")
+		userGroup.GET("/profile/viewhistory", user.ViewHistory)
 
-		userGroup.POST("/addtocart/:id",user.AddToCart)
-		userGroup.GET("/showcart",user.ShowCart)
-		userGroup.DELETE("/deletecartitem/:id",user.DeleteCart)
+		userGroup.POST("/wishlist/:id", user.AddToWishlist)
+		userGroup.GET("/wishlist", user.ShowWishlist)
+		userGroup.DELETE("/wishlist/:id", user.DeleteWishlist)
 
+		r.GET("/profile/membership", user.Membership)
+		r.GET("/payment/success", user.RazorpaySuccess)
+		r.GET("/success", user.SuccessPage)
+		r.GET("/invoice/download")
+
+		userGroup.GET("/checkout/:id", user.DeliveryDetails)
+		userGroup.POST("/checkout", user.Delivery)
+		userGroup.PATCH("/cancel",user.CancelOrder)
 	}
-	
 
-}	
+}

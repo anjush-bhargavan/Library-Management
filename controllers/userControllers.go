@@ -12,7 +12,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"github.com/go-playground/validator/v10"
 )
+
+var validate =validator.New()
 
 //UserLoginPage handles get login page
 func UserLoginPage(c *gin.Context){
@@ -25,8 +28,8 @@ func UserLoginPage(c *gin.Context){
 //UserLogin handles login and create jwt token
 func UserLogin(c *gin.Context){
 	type login struct {
-		Email     string    `json:"email"`
-		Password  string	`json:"password"`
+		Email     string    `json:"email" validate:"required"`
+		Password  string	`json:"password" validate:"required"`
 	}
 
 	var temp login
@@ -37,6 +40,11 @@ func UserLogin(c *gin.Context){
 		 })
 	}
 
+	if err := validate.Struct(temp); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	var user models.User
 
 	if err := config.DB.Where("email = ?",temp.Email).First(&user).Error; err != nil{
@@ -44,9 +52,8 @@ func UserLogin(c *gin.Context){
 		return
 	}
 
-
 	if err :=bcrypt.CompareHashAndPassword([]byte(user.Password),[]byte(temp.Password)); err == nil{
-		token,err:=auth.GenerateToken(user.Email,user.Role)
+		token,err:=auth.GenerateToken(user.UserID,user.Email,user.Role)
 		if err != nil{
 			c.JSON(http.StatusBadGateway,gin.H{"error": "Failed to generate token"})
 			return
@@ -87,6 +94,12 @@ func UserSignup(c *gin.Context){
 		})
 		return
 	}
+
+	if err := validate.Struct(user); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all the mandatory fields"})
+		return
+	}
+
 	var existingUser models.User
 	if err := config.DB.Where("email = ?",user.Email).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"error":"Email already in use"})
@@ -111,6 +124,7 @@ func UserSignup(c *gin.Context){
 	return
 	}
 	user.Password=string(hashedPassword)
+	user.UserName=user.FirstName+" "+user.LastName
 	
 	otp:=auth.GenerateOTP(6)
 	auth.SendOTPByEmail(otp,user.Email)
@@ -121,11 +135,12 @@ func UserSignup(c *gin.Context){
 		return
 	}
 	
-	if err := config.Client.Set(ctx,"otp",otp,30*time.Second).Err(); err != nil {
+	if err := config.Client.Set(ctx,"otp"+user.Email,otp,30*time.Second).Err(); err != nil {
 		c.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
 		return
 	}
-	if err := config.Client.Set(ctx,"user",jsonData,30*time.Second).Err(); err != nil {
+	
+	if err := config.Client.Set(ctx,"user"+user.Email,jsonData,30*time.Second).Err(); err != nil {
 		c.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
 		return
 	}
@@ -149,7 +164,8 @@ func VerifyOTPPage(c *gin.Context) {
 func VerifyOTP(c *gin.Context) {
 	var userData models.User
 	type OTPString struct{
-		Otp string `json:"otp"`
+		Email	string	`json:"email"`
+		Otp 	string	`json:"otp"`
 	}
 	var user OTPString 
 	if err :=c.ShouldBindJSON(&user); err != nil {
@@ -162,19 +178,22 @@ func VerifyOTP(c *gin.Context) {
 		c.JSON(http.StatusNotFound,gin.H{"error":"otp not entered"})
 		return
 	}
-	otp,err:=config.Client.Get(ctx,"otp").Result()
+
+	otp,err:=config.Client.Get(ctx,"otp"+user.Email).Result()
 	if err != nil {
 		c.JSON(http.StatusNotFound,gin.H{"error":"otp not found"})
 		return
 	}
 	if auth.ValidateOTP(otp,user.Otp) {
-		user,err := config.Client.Get(ctx,"user").Result()
+		user,err := config.Client.Get(ctx,"user"+user.Email).Result()
 		if err != nil {
 			c.JSON(http.StatusNotFound,gin.H{"error":"user details missing"})
+			return
 		}
 		err = json.Unmarshal([]byte(user),&userData)
 		if err != nil {
 			c.JSON(http.StatusNotFound,gin.H{"error":"error in unmarshaling json data"})
+			return
 		}
 		config.DB.Create(&userData)
 		c.JSON(http.StatusOK,gin.H{"message":"signup successful"})

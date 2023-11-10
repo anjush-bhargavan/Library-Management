@@ -6,8 +6,11 @@ import (
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
+
+var validate =validator.New()
 
 //GetAuthor handles show Author by id
 func GetAuthor(c *gin.Context) {
@@ -32,6 +35,12 @@ func AddAuthors(c *gin.Context) {
 		})
 		return
 	}
+
+	if err := validate.Struct(Author); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	var existingAuthor models.Author
 	if err := config.DB.Where("first_name = ?",Author.FirstName).First(&existingAuthor).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"error":"Author already exists"})
@@ -70,6 +79,12 @@ func UpdateAuthor(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
 		return
 	}
+
+	if err := validate.Struct(Author); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	config.DB.Save(&Author)
 	c.JSON(http.StatusOK,Author)
 }

@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 //GetBook handles show book by id
 func GetBook(c *gin.Context) {
 	id :=c.Param("id")
@@ -30,18 +31,31 @@ func AddBooks(c *gin.Context) {
 		c.JSON(http.StatusBadGateway,gin.H{
 			"error" : "Binding error",
 		})
-		return
-	}
-	var existingBook models.Book
-	if err := config.DB.Where("book_name = ?",book.BookName).First(&existingBook).Error; err == nil {
-		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
-		return
-	}else if err !=  gorm.ErrRecordNotFound {
-		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		c.Abort()
 		return
 	}
 
-	config.DB.Create(&book)
+	if err := validate.Struct(book); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"+err.Error()})
+		c.Abort()
+		return
+	}
+
+	var existingBook models.Book
+	if err := config.DB.Where("book_name = ?",book.BookName).First(&existingBook).Error; err == nil {
+		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
+		c.Abort()
+		return
+	}else if err !=  gorm.ErrRecordNotFound {
+		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		c.Abort()
+		return
+	}
+
+	if err:=config.DB.Create(&book).Error; err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error":"Error adding to database"})
+		return
+	}
 	c.JSON(200,gin.H{"message":"book added succesfully"})
 }
 
@@ -70,6 +84,12 @@ func UpdateBook(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
 		return
 	}
+
+	if err := validate.Struct(book); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	config.DB.Save(&book)
 	c.JSON(http.StatusOK,book)
 }

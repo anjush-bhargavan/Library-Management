@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 // GetCategory handles show Category by id
 func GetCategory(c *gin.Context) {
 	id := c.Param("id")
@@ -34,6 +35,12 @@ func AddCategorys(c *gin.Context) {
 		})
 		return
 	}
+
+	if err := validate.Struct(Category); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	var existingCategory models.Category
 	if err := config.DB.Where("category_name = ?", Category.CategoryName).First(&existingCategory).Error; err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Category already exists"})
@@ -72,6 +79,12 @@ func UpdateCategory(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	if err := validate.Struct(Category); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	config.DB.Save(&Category)
 	c.JSON(http.StatusOK, Category)
 }

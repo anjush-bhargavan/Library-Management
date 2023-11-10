@@ -9,8 +9,8 @@ import (
 func AuthorRoutes(r *gin.Engine) {
 
 	r.GET("/author/:id",admin.GetAuthor)
-	r.POST("/addauthors",admin.AddAuthors)
-	r.GET("/viewauthors",admin.ViewAuthors)
-	r.PUT("/updateauthor/:id",admin.UpdateAuthor)
-	r.DELETE("/deleteauthor/:id",admin.DeleteAuthor)
+	r.POST("/author",admin.AddAuthors)
+	r.GET("/authors",admin.ViewAuthors)
+	r.PUT("/author/:id",admin.UpdateAuthor)
+	r.DELETE("/author/:id",admin.DeleteAuthor)
 }

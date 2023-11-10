@@ -10,8 +10,8 @@ import (
 func PublicationRoutes(r *gin.Engine) {
 
 	r.GET("/publication/:id",admin.GetPublication)
-	r.POST("/addpublications",admin.AddPublication)
-	r.GET("/viewpublications",admin.ViewPublications)
-	r.PUT("/updatepublication/:id",admin.UpdatePublication)
-	r.DELETE("/deletepublication/:id",admin.DeletePublication)
+	r.POST("/publication",admin.AddPublication)
+	r.GET("/publications",admin.ViewPublications)
+	r.PUT("/publication/:id",admin.UpdatePublication)
+	r.DELETE("/publication/:id",admin.DeletePublication)
 }

@@ -10,7 +10,7 @@ import (
 //function to handle admin side routes
 func adminRoutes(r *gin.Engine) {
 
-	r.Use(middleware.AdminAuth())
+	r.Use(middleware.Authorization("admin"))
 
 	admin.BookRoutes(r)
 	admin.UserManageRoutes(r)

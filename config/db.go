@@ -19,11 +19,17 @@ func ConnectDB(){
 		panic("Failed to connect to the database")
 	}
 	DB.AutoMigrate(
+		&models.User{},
+		&models.Publications{},
 		&models.Category{},
 		&models.Author{},
-		&models.Publications{},
-		&models.Cart{},
-		&models.User{},
+		&models.FineList{},
+		&models.Membership{},
 		&models.Book{},
+		&models.Review{},
+		&models.BooksOut{},
+		&models.History{},
+		&models.Wishlist{},
+		&models.RazorPay{},
 	)
 }

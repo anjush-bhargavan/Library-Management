@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 //GetPublication handles show Publications by id
 func GetPublication(c *gin.Context) {
 	id :=c.Param("id")
@@ -32,6 +33,12 @@ func AddPublication(c *gin.Context) {
 		})
 		return
 	}
+
+	if err := validate.Struct(Publications); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		return
+	}
+
 	var existingPublications models.Publications
 	if err := config.DB.Where("publications_name = ?",Publications.PublicationsName).First(&existingPublications).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"error":"Publications already exists"})
@@ -68,6 +75,11 @@ func UpdatePublication(c *gin.Context) {
 	}
 	if err :=c.ShouldBindJSON(&Publications); err!=nil {
 		c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := validate.Struct(Publications); err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
 		return
 	}
 	config.DB.Save(&Publications)

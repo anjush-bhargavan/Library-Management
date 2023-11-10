@@ -9,8 +9,8 @@ import (
 func BookRoutes(r *gin.Engine) {
 
 	r.GET("/book/:id",admin.GetBook)
-	r.POST("/addbooks",admin.AddBooks)
-	r.GET("/viewbooks",admin.ViewBooks)
-	r.PUT("/updatebook/:id",admin.UpdateBook)
-	r.DELETE("/deletebook/:id",admin.DeleteBook)
+	r.POST("/book",admin.AddBooks)
+	r.GET("/books",admin.ViewBooks)
+	r.PUT("/book/:id",admin.UpdateBook)
+	r.DELETE("/book/:id",admin.DeleteBook)
 }

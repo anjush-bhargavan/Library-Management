@@ -9,8 +9,8 @@ import (
 func CategoryRoutes(r *gin.Engine) {
 
 	r.GET("/category/:id",admin.GetCategory)
-	r.POST("/addcategorys",admin.AddCategorys)
-	r.GET("/viewcategorys",admin.ViewCategorys)
-	r.PUT("/updatecategory/:id",admin.UpdateCategory)
-	r.DELETE("/deletecategory/:id",admin.DeleteCategory)
+	r.POST("/category",admin.AddCategorys)
+	r.GET("/categories",admin.ViewCategorys)
+	r.PUT("/category/:id",admin.UpdateCategory)
+	r.DELETE("/category/:id",admin.DeleteCategory)
 }

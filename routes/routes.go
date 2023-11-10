@@ -11,6 +11,7 @@ func ConfigRoutes(r *gin.Engine){
 
 	r.Use(middleware.ClearCache())
 
+	agentRoutes(r)
 	userRoutes(r)
 	adminRoutes(r)
 

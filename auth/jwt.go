@@ -8,14 +8,16 @@ import (
 
 //Claims that passing via jwt token
 type Claims struct {
+	UserID  uint64          `json:"userid"`
 	Email   string   		`json:"email"`
 	Role    string          `json:"role"`
 	jwt.StandardClaims
 }
 
 //GenerateToken to generate jwt token
-func GenerateToken(userEmail string, userRole string) (string,error){
+func GenerateToken(userID uint64, userEmail string, userRole string) (string,error){
 	claims:=Claims{
+		userID,
 		userEmail,
 		userRole,
 		jwt.StandardClaims{

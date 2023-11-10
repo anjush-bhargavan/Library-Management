@@ -31,7 +31,7 @@ func ViewBooks(c *gin.Context) {
 
 	offset := (page - 1)* pageSize
 
-	config.DB.Order("book_id").Offset(offset).Limit(pageSize).Find(&books)
+	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&books)
 
 	c.JSON(http.StatusOK,books)
 }

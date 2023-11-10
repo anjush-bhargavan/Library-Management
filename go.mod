@@ -14,6 +14,7 @@ require (
 	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/razorpay/razorpay-go v1.2.0 // indirect
 	github.com/redis/go-redis/v9 v9.2.1 // indirect
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/tools v0.14.0 // indirect
