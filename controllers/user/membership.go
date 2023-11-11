@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
@@ -224,5 +223,28 @@ func SuccessPage(c *gin.Context) {
 		"paymentID": pID,
 	})
 }
+
+
+//InvoiceDownload helps to download the invoice
+func InvoiceDownload(c *gin.Context) {
+	content, err := generateInvoice()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate invoice"})
+			return
+		}
+
+		// Set headers for downloading the PDF
+		c.Header("Content-Disposition", "attachment; filename=invoice.pdf")
+		c.Header("Content-Type", "application/pdf")
+		c.Data(http.StatusOK, "application/pdf", content)
+}
+
+
+func generateInvoice() ([]byte,error) {
+	var buf []byte
+
+	return buf,nil
+}
+
 
 

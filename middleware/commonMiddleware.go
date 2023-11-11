@@ -69,7 +69,7 @@ func Authorization(role string) gin.HandlerFunc {
 			return
 		}
 		if role!=ClaimRole{
-			c.JSON(http.StatusUnauthorized,gin.H{"error":"Don't have permissions to access"+role})
+			c.JSON(http.StatusUnauthorized,gin.H{"error":"Don't have permissions to access"})
 			c.Abort()
 			return
 		}

@@ -82,6 +82,7 @@ func DeleteWishlist(c *gin.Context) {
 
 	if err := config.DB.Where("book_id = ? AND user_id = ?",id,userID).Delete(&book).Error; err != nil {
 		c.JSON(http.StatusBadGateway,gin.H{"error":"error deleting from database"})
+		return
 	}
 	c.JSON(http.StatusOK,gin.H{"message":"book removed from Wishlist"})
 

@@ -43,11 +43,17 @@ func userRoutes(r *gin.Engine) {
 		r.GET("/profile/membership", user.Membership)
 		r.GET("/payment/success", user.RazorpaySuccess)
 		r.GET("/success", user.SuccessPage)
-		r.GET("/invoice/download")
+		r.GET("/invoice/download",user.InvoiceDownload)
 
 		userGroup.GET("/checkout/:id", user.DeliveryDetails)
 		userGroup.POST("/checkout", user.Delivery)
 		userGroup.PATCH("/cancel",user.CancelOrder)
+
+		userGroup.POST("/review/:id",user.AddReview)
+		userGroup.GET("review/:id",user.ShowReview)
+		userGroup.PATCH("review/:id",user.EditReview)
+		userGroup.DELETE("review/:id",user.DeleteReview)
+
 	}
 
 }
