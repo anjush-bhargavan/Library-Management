@@ -31,5 +31,7 @@ func ConnectDB(){
 		&models.History{},
 		&models.Wishlist{},
 		&models.RazorPay{},
+		&models.FeedBack{},
+		&models.Event{},
 	)
 }

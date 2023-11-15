@@ -18,7 +18,10 @@ func GetCategory(c *gin.Context) {
 	var category models.Category
 
 	if err := config.DB.First(&category, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Failed to fetch Category"})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"Failed to fetch Category",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -30,28 +33,41 @@ func AddCategorys(c *gin.Context) {
 	var Category models.Category
 
 	if err := c.ShouldBindJSON(&Category); err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error": "Binding error",
-		})
+		c.JSON(http.StatusBadGateway, gin.H{	"status":"Failed",
+												"message":"Binding error",
+												"data":err.Error(),
+											})
 		return
 	}
 
 	if err := validate.Struct(Category); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	var existingCategory models.Category
 	if err := config.DB.Where("category_name = ?", Category.CategoryName).First(&existingCategory).Error; err == nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Category already exists"})
+		c.JSON(http.StatusConflict, gin.H{	"status":"Failed",
+											"message":"Category already exists",
+											"data":existingCategory,
+										})
 		return
 	} else if err != gorm.ErrRecordNotFound {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		c.JSON(http.StatusInternalServerError, gin.H{	"status":"Failed",
+														"message":"Database error",
+														"data":err.Error(),
+													})
 		return
 	}
 
 	config.DB.Create(&Category)
-	c.JSON(200, gin.H{"message": "Category added succesfully"})
+	c.JSON(200, gin.H{	"status":"Success",
+						"message":"Category added succesfully",
+						"data":Category,
+					})
 }
 
 // ViewCategorys handles admin to view all Categorys in database
@@ -70,18 +86,25 @@ func UpdateCategory(c *gin.Context) {
 	var Category models.Category
 
 	if err := config.DB.First(&Category, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Category not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"Category not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	if err := c.ShouldBindJSON(&Category); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{	"status":"Failed",
+												"message":"Binding error",
+												"data":err.Error(),
+											})
 		return
 	}
 
 	if err := validate.Struct(Category); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -95,11 +118,15 @@ func DeleteCategory(c *gin.Context) {
 	var Category models.Category
 
 	if err := config.DB.First(&Category, id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Category not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"Category not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	config.DB.Delete(&Category)
-	c.JSON(http.StatusOK, gin.H{"message": "Category deleted succesfully"})
+	c.JSON(http.StatusOK, gin.H{	"status":"Success",
+									"message":"Category deleted succesfully",
+									"data":Category,
+								})
 }

@@ -15,7 +15,10 @@ func GetBook(c *gin.Context) {
 	var book models.Book
 
 	if err :=config.DB.First(&book,id).Error; err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"error" :"Failed to fetch book"})
+		c.JSON(http.StatusNotFound,gin.H{"status":"Failed",
+										"message":"Error fetching book",
+										"data":err.Error(),
+									})
 		return
 	}
 
@@ -34,4 +37,23 @@ func ViewBooks(c *gin.Context) {
 	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&books)
 
 	c.JSON(http.StatusOK,books)
+}
+
+//SearchBooks handles users to search books
+func SearchBooks(c *gin.Context) {
+	query := c.Query("query")
+		
+	var books []models.Book
+	if err := config.DB.Where("book_name ILIKE ?", "%"+query+"%").Find(&books).Error; err != nil{
+		c.JSON(http.StatusBadGateway,gin.H{"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+											})
+		return
+	}
+	
+	c.JSON(200, gin.H{	"status":"Success",
+						"message":"Search results",
+						"data":books,
+					})
 }

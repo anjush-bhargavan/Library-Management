@@ -16,7 +16,10 @@ func GetPublication(c *gin.Context) {
 	var Publications models.Publications
 
 	if err :=config.DB.First(&Publications,id).Error; err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"error" :"Failed to fetch Publications"})
+		c.JSON(http.StatusNotFound,gin.H{	"status":"Failed",
+											"message":"Failed to fetch Publications",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -28,28 +31,41 @@ func AddPublication(c *gin.Context) {
 	var Publications models.Publications
 
 	if err :=c.ShouldBindJSON(&Publications); err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{
-			"error" : "Binding error",
-		})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err := validate.Struct(Publications); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	var existingPublications models.Publications
 	if err := config.DB.Where("publications_name = ?",Publications.PublicationsName).First(&existingPublications).Error; err == nil {
-		c.JSON(http.StatusConflict,gin.H{"error":"Publications already exists"})
+		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+											"message":"Publications already exists",
+											"data":existingPublications,
+										})
 		return
 	}else if err !=  gorm.ErrRecordNotFound {
-		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		c.JSON(http.StatusInternalServerError,gin.H{	"status":"Failed",
+														"message":"Database error",
+														"data":err.Error(),
+													})
 		return
 	}
 
 	config.DB.Create(&Publications)
-	c.JSON(200,gin.H{"message":"Publications added succesfully"})
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Publications added succesfully",
+						"data":Publications,
+					})
 }
 
 //ViewPublications handles admin to view all Publications in database
@@ -68,18 +84,25 @@ func UpdatePublication(c *gin.Context) {
 	var Publications models.Publications
 
 	if err:=config.DB.First(&Publications,id).Error; err != nil{
-		c.JSON(http.StatusNotFound,gin.H{
-			"error" : "Publications not found",
-		})
+		c.JSON(http.StatusNotFound,gin.H{	"status":"Failed",
+											"message":"Publications not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	if err :=c.ShouldBindJSON(&Publications); err!=nil {
-		c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err := validate.Struct(Publications); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 	config.DB.Save(&Publications)
@@ -92,11 +115,15 @@ func DeletePublication(c *gin.Context) {
 	var Publications models.Publications
 
 	if err :=config.DB.First(&Publications,id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":"Publications not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"Publications not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	config.DB.Delete(&Publications)
-	c.JSON(http.StatusOK,gin.H{"message":"Publications deleted succesfully"})
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message":"Publications deleted succesfully",
+								"data":nil,
+							})
 }

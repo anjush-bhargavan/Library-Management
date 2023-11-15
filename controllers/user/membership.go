@@ -22,9 +22,11 @@ func ShowPlans(c *gin.Context) {
 		{"plan": "3Y", "description": "3 years you can use the platform to borrow books for 2000"},
 	}
 	
-	c.JSON(200, gin.H{"plans": plans})
-	
-	
+	c.JSON(200, gin.H{
+					"status":"Success",
+					"message":"User Plans",
+					"data":plans,
+				})
 }
 
 var validate = validator.New()
@@ -53,12 +55,21 @@ func ValidatePlan(fl validator.FieldLevel) bool {
 func GetPlan(c *gin.Context) {
 	var user Subscription
 	if err :=c.ShouldBindJSON(&user);err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error":"error binding"})
+		c.JSON(http.StatusBadRequest,gin.H{
+											"status":"Failed",
+											"message":"Error binding",
+											"data":err.Error(),
+										})
 		return
 	}
+
 	validate.RegisterValidation("plan",ValidatePlan)
 	if err := validate.Struct(user); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please select correct plan"})
+		c.JSON(http.StatusBadRequest,gin.H{
+											"status":"Failed",
+											"message":"Please select correct plan",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -67,10 +78,18 @@ func GetPlan(c *gin.Context) {
 	userIDString:=fmt.Sprint(userID)
 	fmt.Println(userIDString)
 		if err := config.Client.Set(ctx,"plan"+userIDString,user.Plan,30*time.Minute).Err(); err != nil {
-			c.JSON(http.StatusInternalServerError,gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError,gin.H{
+														"status":"Failed",
+														"message":"Error seting data in redis",
+														"data":err.Error(),
+													})
 			return
 		}
-	c.JSON(200,gin.H{"message":"ok"})
+	c.JSON(200,gin.H{
+					"status":"Success",
+					"message":"Plan selected",
+					"data":user,
+					})
 }
 
 type pageVariables struct {
@@ -91,23 +110,37 @@ func Membership(c *gin.Context){
 
 	if err :=config.DB.First(&user,userID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
-			"error":"User not found",
-		})
+											"status":"Failed",
+											"message":"User not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	var existingMember models.Membership
 
-	if err:=config.DB.Where("user_id = ?",user.UserID).First(&existingMember).Error; err == nil {
-			c.JSON(http.StatusConflict,gin.H{"error":"Already have membership"})
+	if err:=config.DB.Where("user_id = ? AND is_active = ?",user.UserID,true).First(&existingMember).Error; err == nil {
+			c.JSON(http.StatusConflict,gin.H{
+											"status":"Failed",
+											"message":"Already have a membership",
+											"data":err.Error(),
+										})
 			return
 	}else if err != gorm.ErrRecordNotFound {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"database error"})
+		c.JSON(http.StatusBadGateway,gin.H{
+											"status":"Failed",
+											"message":"Databae error",
+											"data":err.Error(),
+										})
 		return
 	}
 	
 	userPlan,err:=config.Client.Get(ctx,"plan"+userID).Result()
 	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"error":"plan not found"})
+		c.JSON(http.StatusNotFound,gin.H{
+											"status":"Failed",
+											"message":"Plan not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	amount:=0
@@ -118,7 +151,11 @@ func Membership(c *gin.Context){
 	}else if userPlan=="3Y"{
 		amount=2000
 	}else {
-		c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid plan"})
+		c.JSON(http.StatusBadRequest,gin.H{
+											"status":"Failed",
+											"message":"Invalid plan",
+											"data":err.Error(),
+										})
 	}
 	amountInPaisa := amount * 100
 
@@ -174,43 +211,105 @@ func RazorpaySuccess(c *gin.Context) {
 
 	result := config.DB.Create(&rPay)
 	if result.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
+		c.JSON(http.StatusBadRequest, gin.H{
+											"status":"Failed",
+											"message":"Database error",
+											"data":result.Error,
+										})
 		return
 	}
 
 
 	userPlan,err:=config.Client.Get(ctx,"plan"+userIDString).Result()
 	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"error":"otp not found"})
-		return
-	}
-	var d time.Duration
-	if userPlan=="5M"{
-		d=time.Hour*24*150
-	}else if userPlan=="1Y"{
-		d=time.Hour*24*365
-	}else if userPlan=="3Y"{
-		d=time.Hour*24*1095
-	}else {
-		c.JSON(http.StatusBadRequest,gin.H{"error":"Invalid plan"})
-	}
-
-
-	var user models.Membership
-
-	user.UserID=uint64(UserID)
-	user.RazorpaySubscriptionID=paymentID
-	user.Plan=userPlan
-	user.StartedOn=time.Now()
-	user.ExpiresAt=time.Now().Add(d)
-
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"database error"})
+		c.JSON(http.StatusNotFound,gin.H{
+											"status":"Failed",
+											"message":"OTP Not found",
+											"data":err.Error(),
+										})
 		return
 	}
 
+	if userPlan=="fine"{
+		var user models.FineList
 
-	c.JSON(http.StatusOK, gin.H{"status": true})
+
+		if err := config.DB.Where("user_id = ?",UserID).Delete(&user).Error; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{
+												"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+											})
+			return
+		}
+	}else{
+
+		var d time.Duration
+		if userPlan=="5M"{
+			d=time.Hour*24*150
+		}else if userPlan=="1Y"{
+			d=time.Hour*24*365
+		}else if userPlan=="3Y"{
+			d=time.Hour*24*1095
+		}else {
+			c.JSON(http.StatusBadRequest,gin.H{
+												"status":"Failed",
+												"message":"Invalid plan",
+												"data":err.Error(),
+											})
+		}
+
+		var existingMember models.Membership
+
+		if err:=config.DB.Where("user_id = ? AND is_active = ?",UserID,false).First(&existingMember).Error; err == nil {
+			existingMember.RazorpaySubscriptionID=paymentID
+			existingMember.Plan=userPlan
+			existingMember.StartedOn=time.Now()
+			existingMember.ExpiresAt=time.Now().Add(d)
+			existingMember.IsActive=true
+
+			if err := config.DB.Save(&existingMember).Error; err != nil {
+				c.JSON(http.StatusBadGateway,gin.H{
+													"status":"Failed",
+													"message":"Database error",
+													"data":err.Error(),
+												})
+				return
+			}
+
+		}else if err != gorm.ErrRecordNotFound {
+			c.JSON(http.StatusBadGateway,gin.H{
+												"status":"Failed",
+												"message":"Databae error",
+												"data":err.Error(),
+											})
+			return
+		}else{
+			var user models.Membership
+
+			user.UserID=uint64(UserID)
+			user.RazorpaySubscriptionID=paymentID
+			user.Plan=userPlan
+			user.StartedOn=time.Now()
+			user.ExpiresAt=time.Now().Add(d)
+
+			if err := config.DB.Create(&user).Error; err != nil {
+				c.JSON(http.StatusBadGateway,gin.H{
+													"status":"Failed",
+													"message":"Database error",
+													"data":err.Error(),
+												})
+				return
+			}
+
+		}
+
+
+		
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": true})
 }
 
 // SuccessPage renders the success page.
@@ -224,27 +323,6 @@ func SuccessPage(c *gin.Context) {
 	})
 }
 
-
-//InvoiceDownload helps to download the invoice
-func InvoiceDownload(c *gin.Context) {
-	content, err := generateInvoice()
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate invoice"})
-			return
-		}
-
-		// Set headers for downloading the PDF
-		c.Header("Content-Disposition", "attachment; filename=invoice.pdf")
-		c.Header("Content-Type", "application/pdf")
-		c.Data(http.StatusOK, "application/pdf", content)
-}
-
-
-func generateInvoice() ([]byte,error) {
-	var buf []byte
-
-	return buf,nil
-}
 
 
 

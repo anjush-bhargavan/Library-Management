@@ -16,7 +16,10 @@ func GetBook(c *gin.Context) {
 	var book models.Book
 
 	if err :=config.DB.First(&book,id).Error; err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"error" :"Failed to fetch book"})
+		c.JSON(http.StatusNotFound,gin.H{	"status":"Failed",
+											"message":"Failed to fetch book",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -28,32 +31,45 @@ func AddBooks(c *gin.Context) {
 	var book models.Book
 
 	if err :=c.ShouldBindJSON(&book); err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{
-			"error" : "Binding error",
-		})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+											})
 		c.Abort()
 		return
 	}
 
 	if err := validate.Struct(book); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"+err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		c.Abort()
 		return
 	}
 
 	var existingBook models.Book
 	if err := config.DB.Where("book_name = ?",book.BookName).First(&existingBook).Error; err == nil {
-		c.JSON(http.StatusConflict,gin.H{"error":"Book already exists"})
+		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+											"message":"Book already exists",
+											"data":existingBook,
+										})
 		c.Abort()
 		return
 	}else if err !=  gorm.ErrRecordNotFound {
-		c.JSON(http.StatusInternalServerError,gin.H{"error":"Database error"})
+		c.JSON(http.StatusInternalServerError,gin.H{	"status":"Failed",
+														"message":"Database error",
+														"data":err.Error(),
+													})
 		c.Abort()
 		return
 	}
 
 	if err:=config.DB.Create(&book).Error; err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error":"Error adding to database"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Error adding to database",
+											"data":err.Error(),
+										})
 		return
 	}
 	c.JSON(200,gin.H{"message":"book added succesfully"})
@@ -75,18 +91,25 @@ func UpdateBook(c *gin.Context) {
 	var book models.Book
 
 	if err:=config.DB.First(&book,id).Error; err != nil{
-		c.JSON(http.StatusNotFound,gin.H{
-			"error" : "book not found",
-		})
+		c.JSON(http.StatusNotFound,gin.H{	"status":"Failed",
+											"message":"Book not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	if err :=c.ShouldBindJSON(&book); err!=nil {
-		c.JSON(http.StatusBadRequest,gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err := validate.Struct(book); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -100,11 +123,15 @@ func DeleteBook(c *gin.Context) {
 	var book models.Book
 
 	if err :=config.DB.First(&book,id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":"Book not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"Book not found",
+											"data":err.Error(),
+										})
 		return
 	}
 	config.DB.Delete(&book)
-	c.JSON(http.StatusOK,gin.H{"message":"book deleted succesfully"})
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message":"Book deleted succesfully",
+								"data":nil,
+							})
 }

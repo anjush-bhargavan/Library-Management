@@ -14,9 +14,10 @@ func ViewUser(c *gin.Context) {
 	var user models.User
 
 	if err :=config.DB.First(&user,id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":"User not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"User not found",
+											"data":err.Error(),
+											})
 		return
 	}
 
@@ -40,18 +41,25 @@ func UpdateUser(c *gin.Context) {
 	var user models.User
 
 	if err :=config.DB.First(&user,id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":"User not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"User not found",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err :=c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"Binding error"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+										})
 		return
 	}
 	if err := validate.Struct(user); err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error": "Please fill all fields"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Please fill all fields",
+											"data":err.Error(),
+										})
 		return
 	}
 
@@ -65,13 +73,17 @@ func DeleteUser(c *gin.Context) {
 	var user models.User
 
 	if err :=config.DB.First(&user,id).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error":"User not found",
-		})
+		c.JSON(http.StatusNotFound, gin.H{	"status":"Failed",
+											"message":"User not found",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	config.DB.Delete(&user)
-	c.JSON(http.StatusOK,gin.H{"message":"User deleted"})
+	c.JSON(http.StatusOK,gin.H{	"status":"Failed",
+								"message":"User deleted",
+								"data":nil,
+							})
 
 }

@@ -21,9 +21,11 @@ func userRoutes(r *gin.Engine) {
 	userGroup.Use(middleware.Authorization("user"))
 	{
 		userGroup.GET("/home", controllers.HomePage)
+		userGroup.GET("/logout", controllers.UserLogout)
+
 		userGroup.GET("home/book/:id", user.GetBook)
 		userGroup.GET("home/books", user.ViewBooks)
-		userGroup.GET("/logout", controllers.UserLogout)
+		userGroup.GET("/search",user.SearchBooks)
 
 		userGroup.GET("/profile", user.UserProfile)
 		userGroup.PUT("/profile", user.ProfileUpdate)
@@ -32,8 +34,9 @@ func userRoutes(r *gin.Engine) {
 		userGroup.GET("profile/plans", user.ShowPlans)
 		userGroup.POST("profile/plans", user.GetPlan)
 
-		userGroup.GET("/profile/viewfine")
-		userGroup.POST("/profile/payfine")
+		userGroup.GET("/profile/viewfine",user.ViewFine)
+		r.GET("/profile/payfine",user.PayFine)
+		
 		userGroup.GET("/profile/viewhistory", user.ViewHistory)
 
 		userGroup.POST("/wishlist/:id", user.AddToWishlist)
@@ -43,7 +46,7 @@ func userRoutes(r *gin.Engine) {
 		r.GET("/profile/membership", user.Membership)
 		r.GET("/payment/success", user.RazorpaySuccess)
 		r.GET("/success", user.SuccessPage)
-		r.GET("/invoice/download",user.InvoiceDownload)
+		r.GET("/invoice/download")
 
 		userGroup.GET("/checkout/:id", user.DeliveryDetails)
 		userGroup.POST("/checkout", user.Delivery)
@@ -53,6 +56,9 @@ func userRoutes(r *gin.Engine) {
 		userGroup.GET("review/:id",user.ShowReview)
 		userGroup.PATCH("review/:id",user.EditReview)
 		userGroup.DELETE("review/:id",user.DeleteReview)
+
+		userGroup.POST("/feedback",user.Feedback)
+		userGroup.GET("/events",user.ViewEvents)
 
 	}
 

@@ -21,22 +21,34 @@ func AddReview(c *gin.Context) {
 
 	var existingReview models.Review
 	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).Find(&existingReview).Error; err == nil {
-		c.JSON(http.StatusConflict,gin.H{"error":"Review already exists"})
+		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+											"message":"Review already exists",
+											"data":existingReview,
+										})
 		return
 	}else if err !=gorm.ErrRecordNotFound {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"error getting review from database"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Error getting review from databse",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err :=c.ShouldBindJSON(&review);err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"error":"error binding"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Error Binding",
+											"data":err.Error(),
+										})
 		return
 	}
 	review.UserID=userID
 	review.BookID=uint64(bookID)
 	
 	if err := config.DB.Create(&review).Error; err!= nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"Database error"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
 		return
 	}
 	c.JSON(200,review)
@@ -51,7 +63,10 @@ func ShowReview(c *gin.Context) {
 	var reviews []models.Review
 
 	if err :=config.DB.Find(&reviews).Where("id = ?",bookID).Error; err != nil {
-		c.JSON(http.StatusBadRequest,gin.H{"error":"error in getting reviews"})
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+											"message":"Error getting reviews of book",
+											"data":err.Error(),
+										})
 		return
 	}
 	var sum uint64
@@ -73,18 +88,27 @@ func EditReview(c *gin.Context) {
 
 	var review models.Review
 	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).Find(&review).Error; err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"error getting review from database"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Error getting review from databse",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err :=c.ShouldBindJSON(&review); err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"Binding error"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Binding error",
+											"data":err.Error(),
+										})
 		return
 	}
 
 
 	if err:=config.DB.Save(&review).Error; err != nil{
-		c.JSON(http.StatusBadGateway,gin.H{"error":"Database error"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
 		return
 	}
 	c.JSON(http.StatusOK,review)
@@ -100,13 +124,22 @@ func DeleteReview(c *gin.Context) {
 
 	var review models.Review
 	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).Find(&review).Error; err != nil {
-		c.JSON(http.StatusBadGateway,gin.H{"error":"error getting review from database"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Error getting review from database",
+											"data":err.Error(),
+										})
 		return
 	}
 
 	if err:=config.DB.Delete(&review).Error; err != nil{
-		c.JSON(http.StatusBadGateway,gin.H{"error":"Database error"})
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
 		return
 	}
-	c.JSON(http.StatusOK,gin.H{"message":"Review deleted"})
+	c.JSON(http.StatusOK,gin.H{"status":"Success",
+								"message":"Review Deleted",
+								"data":nil,
+							})
 }
