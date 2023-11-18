@@ -1,10 +1,8 @@
 package config
 
 import (
-	"fmt"
 	"log"
 	"time"
-
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/robfig/cron/v3"
 )
@@ -18,7 +16,6 @@ func InitCron() {
 }
 
 func CheckMembership() {
-	fmt.Println("here i am")
 	var members []models.Membership
 	now := time.Now()
 	if err := DB.Where("expires_at < ?", now).Find(&members).Error; err != nil {
