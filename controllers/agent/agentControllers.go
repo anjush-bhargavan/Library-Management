@@ -125,8 +125,26 @@ func UpdateOrders(c *gin.Context) {
 		}
 	}
 	if first.Status=="returned"{
-		var book models.BooksOut
-		if err := config.DB.Where("user_id = ?",Currentorder.UserID).Find(&book).Error; err != nil {
+
+		var book models.Book
+		if err := config.DB.Where("book_id = ?",Currentorder.BookID).First(&book).Error;err != nil{
+			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+											})
+			return
+		}
+		book.OrderCount++
+		if err := config.DB.Save(&book).Error; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+											})
+			return
+		}
+		
+		var bookOut models.BooksOut
+		if err := config.DB.Where("user_id = ?",Currentorder.UserID).Find(&bookOut).Error; err != nil {
 			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
 												"message":"Database error in getting user",
 												"data":err.Error(),
@@ -134,10 +152,10 @@ func UpdateOrders(c *gin.Context) {
 			return
 		}
 		today:=time.Now()
-		if book.ReturnDate.Before(today) {
+		if bookOut.ReturnDate.Before(today) {
 			var fineduser models.FineList 
 			fineduser.UserID=Currentorder.UserID
-			duration:=time.Since(book.ReturnDate)
+			duration:=time.Since(bookOut.ReturnDate)
 			fineduser.Fine=  uint64((duration.Hours() / 24 )* 10)
 
 			if err :=config.DB.Create(&fineduser).Error; err!=nil {
@@ -149,7 +167,7 @@ func UpdateOrders(c *gin.Context) {
 			}
 		}
 	
-		if err:=config.DB.Delete(&book).Error; err != nil{
+		if err:=config.DB.Delete(&bookOut).Error; err != nil{
 			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
 												"message":"Database error",
 												"data":err.Error(),

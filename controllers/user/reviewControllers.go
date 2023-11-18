@@ -17,6 +17,21 @@ func AddReview(c *gin.Context) {
 	userIDContext,_ :=c.Get("user_id")
 	userID:=userIDContext.(uint64)
 
+	var history models.History
+	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).Find(&history).Error; err != nil {
+		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+											"message":"You didn't borrowed this book",
+											"data":err.Error(),
+										})
+		return
+	}else if err == nil && history.Status =="pending"{
+		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+											"message":"You didn't borrowed this book",
+											"data":err.Error(),
+										})
+		return
+	}
+
 	var review models.Review
 
 	var existingReview models.Review
@@ -51,6 +66,23 @@ func AddReview(c *gin.Context) {
 										})
 		return
 	}
+	
+	var book models.Book
+	if err := config.DB.Where("book_id = ?",bookID).First(&book).Error;err != nil{
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
+		return
+	}
+	book.Rating=(book.Rating+review.Rating)/2
+	if err := config.DB.Save(&book).Error; err != nil {
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
+		return
+	}
 	c.JSON(200,review)
 }
 
@@ -75,7 +107,15 @@ func ShowReview(c *gin.Context) {
 	}
 	Rating:=int(sum)/len(reviews)
 
-	c.JSON(http.StatusOK,gin.H{"Rating":Rating,"Review":reviews})
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message1":"Rating",
+								"data1":Rating,
+								"message2":"count of reviews",
+								"data2":len(reviews),
+								"massage3":"Reviews of book",
+								"data3":reviews,
+
+							})
 }
 
 
@@ -111,7 +151,10 @@ func EditReview(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(http.StatusOK,review)
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message":"Review ",
+								"data":review,
+							})
 }
 
 

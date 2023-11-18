@@ -13,6 +13,7 @@ func main() {
 	r:=gin.Default()
 	config.ConnectDB()
 	config.InitRedis()
+	go config.InitCron()
 	r.LoadHTMLGlob("templates/*.html")
 	routes.ConfigRoutes(r)
 

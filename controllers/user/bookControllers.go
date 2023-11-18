@@ -57,3 +57,23 @@ func SearchBooks(c *gin.Context) {
 						"data":books,
 					})
 }
+
+
+//BookByCategory shows users books by category
+func BookByCategory(c *gin.Context) {
+	categoryID :=c.Param("id")
+
+	var books models.Book
+
+	if err := config.DB.Where("category_id = ?",categoryID).Find(&books).Error; err != nil {
+		c.JSON(http.StatusBadGateway,gin.H{"status":"Failed",
+		"message":"Database error",
+		"data":err.Error(),
+		})
+		return
+	}
+	c.JSON(200, gin.H{	"status":"Success",
+						"message":"Search results",
+						"data":books,
+					})
+}
