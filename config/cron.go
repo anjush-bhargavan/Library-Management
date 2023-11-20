@@ -3,10 +3,13 @@ package config
 import (
 	"log"
 	"time"
+
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/robfig/cron/v3"
 )
 
+
+//InitCron function initializes the cron job and run the CheckMembership in each day
 func InitCron() {
 	c := cron.New()
 
@@ -15,6 +18,7 @@ func InitCron() {
 	c.Start()
 }
 
+//CheckMembership will check users membership is expired or not in each day
 func CheckMembership() {
 	var members []models.Membership
 	now := time.Now()
