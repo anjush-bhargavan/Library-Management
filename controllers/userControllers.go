@@ -254,3 +254,14 @@ func HomePage(c *gin.Context){
 							})
 }
 
+
+//IndexPage handles get indexpage
+func IndexPage(c *gin.Context){
+	
+
+	c.HTML(http.StatusOK,"index.html",gin.H{	"status":"Success",
+								"message":"Welcome to Golib",
+								"data":nil,
+							})
+}
+

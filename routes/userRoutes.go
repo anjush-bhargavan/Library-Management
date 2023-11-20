@@ -10,6 +10,7 @@ import (
 // function to handle user side routes
 func userRoutes(r *gin.Engine) {
 
+	r.GET("/index",controllers.IndexPage)
 	r.POST("/login", controllers.UserLogin)
 	r.POST("/signup", controllers.UserSignup)
 	r.POST("/verifyotp", controllers.VerifyOTP)
