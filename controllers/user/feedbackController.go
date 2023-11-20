@@ -32,6 +32,9 @@ func Feedback(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(200,feedback)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Feedback sent succesfully",
+						"data":feedback,
+					})
 
 }

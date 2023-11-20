@@ -27,5 +27,8 @@ func ViewEvents(c *gin.Context) {
 										})
 	}
 
-	c.JSON(http.StatusOK,events)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Upcoming events are :",
+						"data":events,
+					})
 } 

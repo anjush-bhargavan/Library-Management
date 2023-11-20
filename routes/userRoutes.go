@@ -10,18 +10,14 @@ import (
 // function to handle user side routes
 func userRoutes(r *gin.Engine) {
 
-	r.GET("/login", controllers.UserLoginPage)
 	r.POST("/login", controllers.UserLogin)
-	r.GET("/signup", controllers.UserSignupPage)
 	r.POST("/signup", controllers.UserSignup)
-	r.GET("/verifyotp", controllers.VerifyOTPPage)
 	r.POST("/verifyotp", controllers.VerifyOTP)
 
 	userGroup := r.Group("/user")
 	userGroup.Use(middleware.Authorization("user"))
 	{
 		userGroup.GET("/home", controllers.HomePage)
-		userGroup.GET("/logout", controllers.UserLogout)
 
 		userGroup.GET("home/book/:id", user.GetBook)
 		userGroup.GET("home/books", user.ViewBooks)

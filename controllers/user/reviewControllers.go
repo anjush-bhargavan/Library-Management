@@ -18,14 +18,14 @@ func AddReview(c *gin.Context) {
 	userID:=userIDContext.(uint64)
 
 	var history models.History
-	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).Find(&history).Error; err != nil {
+	if err := config.DB.Where("book_id = ? AND user_id = ?",bookID,userID).First(&history).Error; err != nil {
 		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
 											"message":"You didn't borrowed this book",
 											"data":err.Error(),
 										})
 		return
 	}else if err == nil && history.Status =="pending"{
-		c.JSON(http.StatusConflict,gin.H{	"status":"Failed",
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
 											"message":"You didn't borrowed this book",
 											"data":err.Error(),
 										})
@@ -83,7 +83,10 @@ func AddReview(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(200,review)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Review  added succesfully",
+						"data":review,
+					})
 }
 
 

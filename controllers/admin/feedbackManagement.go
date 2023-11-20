@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/anjush-bhargavan/library-management/config"
@@ -20,5 +19,8 @@ func ViewFeedbacks(c *gin.Context) {
 
 	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&feedbacks)
 
-	c.JSON(http.StatusOK,feedbacks)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Feedbscks fetched succesfully",
+						"data":feedbacks,
+					})
 } 

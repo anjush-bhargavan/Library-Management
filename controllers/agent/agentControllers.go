@@ -20,7 +20,10 @@ func ViewOrders(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200,orders)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Orders fetched succesfully",
+						"data":orders,
+					})
 }
 
 //GetOrder function shows agent the order details using order_id
@@ -39,7 +42,7 @@ func GetOrder(c *gin.Context) {
 
 	var result struct{
 		ID			uint64
-		FirstName	string
+		UserName	string
 		Phone		string
 		Address		string
 		BookName	string
@@ -64,15 +67,18 @@ func GetOrder(c *gin.Context) {
     WHERE 
         histories.id = ?`
 
-if err := config.DB.Raw(query, order.ID).Scan(&result).Error; err != nil {
-    c.JSON(http.StatusBadGateway, gin.H{	"status":"Failed",
-											"message":"Database error while joining",
-											"data":err.Error(),
-										})
-    return
-}
+	if err := config.DB.Raw(query, order.ID).Scan(&result).Error; err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{	"status":"Failed",
+												"message":"Database error while joining",
+												"data":err.Error(),
+											})
+		return
+	}
 
-	c.JSON(200,result)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Order details",
+						"data":result,
+						})
 }
 
 
@@ -180,7 +186,10 @@ func UpdateOrders(c *gin.Context) {
 								})
 	}
 
-	c.JSON(200,Currentorder)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Order updated succesfully",
+						"data":Currentorder,
+					})
 }
 
 

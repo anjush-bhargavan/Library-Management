@@ -117,7 +117,6 @@ func Membership(c *gin.Context){
 		return
 	}
 	var existingMember models.Membership
-
 	if err:=config.DB.Where("user_id = ? AND is_active = ?",user.UserID,true).First(&existingMember).Error; err == nil {
 			c.JSON(http.StatusConflict,gin.H{
 											"status":"Failed",
@@ -126,7 +125,7 @@ func Membership(c *gin.Context){
 										})
 			return
 	}else if err != gorm.ErrRecordNotFound {
-		c.JSON(http.StatusBadGateway,gin.H{
+		c.JSON(http.StatusBadRequest,gin.H{
 											"status":"Failed",
 											"message":"Databae error",
 											"data":err.Error(),

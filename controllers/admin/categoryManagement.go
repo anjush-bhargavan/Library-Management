@@ -25,7 +25,10 @@ func GetCategory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, category)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Category fetched succesfully",
+						"data":category,
+					})
 }
 
 // AddCategorys handle admin to add Categorys to database
@@ -73,11 +76,14 @@ func AddCategorys(c *gin.Context) {
 // ViewCategorys handles admin to view all Categorys in database
 func ViewCategorys(c *gin.Context) {
 
-	var Categorys []models.Category
+	var Categories []models.Category
 
-	config.DB.Find(&Categorys)
+	config.DB.Find(&Categories)
 
-	c.JSON(http.StatusOK, Categorys)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Categories fetched succesfully",
+						"data":Categories,
+					})
 }
 
 // UpdateCategory handles admin to update Category details
@@ -109,7 +115,10 @@ func UpdateCategory(c *gin.Context) {
 	}
 
 	config.DB.Save(&Category)
-	c.JSON(http.StatusOK, Category)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"category updated succesfully",
+						"data":Category,
+					})
 }
 
 // DeleteCategory handles admin to delete Category by id

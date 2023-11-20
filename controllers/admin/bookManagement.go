@@ -23,7 +23,10 @@ func GetBook(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,book)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"book fetched succesfully",
+						"data":book,
+					})
 }
 
 // AddBooks handle admin to add books pto database
@@ -72,7 +75,10 @@ func AddBooks(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(200,gin.H{"message":"book added succesfully"})
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Book added succesfully",
+						"data":book,
+					})
 }
 
 //ViewBooks handles admin to view all books in database
@@ -82,7 +88,10 @@ func ViewBooks(c *gin.Context) {
 
 	config.DB.Find(&books)
 
-	c.JSON(http.StatusOK,books)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Books fetched succesfully",
+						"data":books,
+					})
 }
 
 //UpdateBook handles admin to update book details
@@ -114,7 +123,10 @@ func UpdateBook(c *gin.Context) {
 	}
 
 	config.DB.Save(&book)
-	c.JSON(http.StatusOK,book)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Book updated succesfully",
+						"data":book,
+					})
 }
 
 //DeleteBook handles admin to delete book by id

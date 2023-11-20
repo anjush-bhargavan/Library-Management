@@ -20,8 +20,9 @@ func DeliveryDetails(c *gin.Context) {
 	userIDContext,_ :=c.Get("user_id")
 	userID:=userIDContext.(uint64)
 	userIDString:=fmt.Sprint(userID)
-
-	if err := config.DB.Model(models.Membership{}).Where("user_id = ? AND is_active = ?",userID,true).Error; err != nil {
+	
+	var member models.Membership
+	if err := config.DB.Model(models.Membership{}).Where("user_id = ? AND is_active = ?",userID,true).First(&member).Error; err != nil {
 		c.JSON(http.StatusUnauthorized,gin.H{"status":"Failed",
 											"message":"You have to take membership before borrowing books",
 											"data":err.Error(),
@@ -31,15 +32,9 @@ func DeliveryDetails(c *gin.Context) {
 	bookID,_ :=strconv.Atoi(id)
 	bookIDUint := uint64(bookID)
 
-	var bookout models.BooksOut
-
-	if err :=config.DB.Where("book_id = ?",bookIDUint).First(&bookout).Error; err == nil {
-		c.JSON(http.StatusFound, gin.H{"status":"Failed",
-										"message":"Book is not currently available, Will be available after ",
-										"data":bookout.ReturnDate,
-										})
-		return
-	}else if err != gorm.ErrRecordNotFound {
+	var book models.Book
+		
+	if err :=config.DB.First(&book,bookIDUint).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
 										"message":"Book not found",
 										"data":err.Error(),
@@ -47,24 +42,30 @@ func DeliveryDetails(c *gin.Context) {
 		return
 	}
 
-	var history models.History
+	var bookOutCount,pendingCount int64
 
-	if err :=config.DB.Where("book_id = ? AND status = ?",bookIDUint,"pending").First(&history).Error; err == nil {
-		c.JSON(http.StatusFound, gin.H{"status":"Failed",
-										"message":"Book is currently ordered by another member",
-										"data":nil,
-										})
-		return
-	}else if err != gorm.ErrRecordNotFound {
+	if err :=config.DB.Model(&models.BooksOut{}).Where("book_id = ?",bookIDUint).Count(&bookOutCount).Error; err!= nil{
 		c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
-										"message":"Book not found",
+										"message":"Error getting book out count",
 										"data":err.Error(),
+										})
+	}
+	if err :=config.DB.Model(&models.History{}).Where("book_id = ? AND status = ?",bookIDUint,"pending").Count(&pendingCount).Error; err!= nil{
+		c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
+										"message":"Error getting  order count",
+										"data":err.Error(),
+										})
+	}
+	if bookOutCount+pendingCount >= int64(book.NoOfCopies) {
+		c.JSON(http.StatusConflict, gin.H{"status":"Failed",
+										"message":"Book is not currently available",
+										"data":"Will be available after 30 days",
 										})
 		return
 	}
 
 
-	Date := time.Now().AddDate(0,0,5).Format("01-02-2008")
+	Date := time.Now().AddDate(0,0,5).Format("01-Jan-2006")
 	c.JSON(200,gin.H{"status":"Success",
 					"message":"Available date for delivery",
 					"data":Date,
@@ -78,7 +79,6 @@ func DeliveryDetails(c *gin.Context) {
 										})
 		return
 	}
-	fmt.Println(existingBookid)
 	if existingBookid==0{
 		c.JSON(200,gin.H{"status":"Success",
 						"message":"No books in hand",
@@ -101,15 +101,6 @@ func DeliveryDetails(c *gin.Context) {
 	}
 		
 
-		var book models.Book
-		
-		if err :=config.DB.First(&book,bookIDUint).Error; err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
-											"message":"Book not found",
-											"data":err.Error(),
-											})
-			return
-		}
 		
 		if err := config.Client.Set(ctx,"bookid"+userIDString,bookIDUint,30*time.Minute).Err(); err != nil {
 			c.JSON(400,gin.H{"status":"Failed",
@@ -119,7 +110,10 @@ func DeliveryDetails(c *gin.Context) {
 			return
 		}
 
-	c.JSON(http.StatusOK,book)
+		c.JSON(200,gin.H{"status":"Success",
+						"message":"Book",
+						"data":book,
+					})
 }
 
 //Delivery adds the order to history

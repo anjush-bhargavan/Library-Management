@@ -21,7 +21,10 @@ func ViewUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,user)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"User fetched succesfully",
+						"data":user,
+					})
 }
 
 
@@ -31,7 +34,10 @@ func ViewUsers(c *gin.Context) {
 
 	config.DB.Find(&users)
 
-	c.JSON(http.StatusOK,users)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Users fetched succesfully",
+						"data":users,
+					})
 }
 
 
@@ -64,7 +70,10 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	config.DB.Save(&user)
-	c.JSON(http.StatusOK,user)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"User updated succesfully",
+						"data":user,
+					})
 }
 
 //DeleteUser handles admin to delete user by id

@@ -22,7 +22,10 @@ func GetBook(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,book)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Book fetched succesfully",
+						"data":book,
+					})
 }
 
 //ViewBooks handles view all books by pagination
@@ -36,7 +39,10 @@ func ViewBooks(c *gin.Context) {
 
 	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&books)
 
-	c.JSON(http.StatusOK,books)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Books fetched succesfully",
+						"data":books,
+					})
 }
 
 //SearchBooks handles users to search books

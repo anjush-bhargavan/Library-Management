@@ -51,7 +51,7 @@ func AddToWishlist(c *gin.Context) {
 	
 	Wishlist.UserID=userID
 	config.DB.Create(&Wishlist)
-	c.JSON(http.StatusOK,gin.H{	"status":"Failed",
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
 								"message":"Book added to wishlist",
 								"data":Wishlist,
 							})
@@ -91,7 +91,10 @@ func ShowWishlist(c *gin.Context) {
 		books=append(books, book)
 	}
 
-	c.JSON(http.StatusOK,books)
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message":"Books in wishlist :",
+								"data":books,
+							})
 }
 
 
@@ -109,9 +112,9 @@ func DeleteWishlist(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(http.StatusOK,gin.H{	"status":"Failed",
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
 								"message":"Book removed from wishlist",
-								"data":book,
+								"data":nil,
 							})
 
 }

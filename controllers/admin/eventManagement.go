@@ -29,7 +29,10 @@ func AddEvent(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(200,event)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Event added succesfully",
+						"data":event,
+					})
 }
 
 
@@ -64,7 +67,10 @@ func EditEvent(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(http.StatusOK,event)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Event updated succesfully",
+						"data":event,
+					})
 }
 
 //ViewEvents handles admin to view events
@@ -78,5 +84,8 @@ func ViewEvents(c *gin.Context) {
 
 	config.DB.Order("id").Offset(offset).Limit(pageSize).Find(&events)
 
-	c.JSON(http.StatusOK,events)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"events fetched succesfully",
+						"data":events,
+					})
 } 

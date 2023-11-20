@@ -26,7 +26,10 @@ func UserProfile(c *gin.Context) {
 										})
 		return
 	}
-	c.JSON(http.StatusOK,user)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Profile fetched succesfully",
+						"data":user,
+					})
 }
 
 //ProfileUpdate handles the updates of userprofile
@@ -54,7 +57,10 @@ func ProfileUpdate(c *gin.Context) {
 
 
 	config.DB.Save(&user)
-	c.JSON(http.StatusOK,user)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Profile updated succesfully",
+						"data":user,
+					})
 }
 
 
@@ -116,7 +122,7 @@ func ChangePassword(c *gin.Context) {
 	}
 	user.Password=string(hashedPassword)
 	config.DB.Save(&user)
-	c.JSON(http.StatusOK,gin.H{	"status":"Failed",
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
 								"message":"Successfully changed password",
 								"data":nil,
 							})
@@ -138,5 +144,8 @@ func ViewHistory(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,history)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"History fetched succesfully",
+						"data":history,
+					})
 }

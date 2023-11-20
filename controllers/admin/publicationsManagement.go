@@ -23,7 +23,10 @@ func GetPublication(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,Publications)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Publication fetched succesfully",
+						"data":Publications,
+					})
 }
 
 // AddPublication handle admin to add Publications pto database
@@ -75,7 +78,10 @@ func ViewPublications(c *gin.Context) {
 
 	config.DB.Find(&Publications)
 
-	c.JSON(http.StatusOK,Publications)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Publications fetched succesfully",
+						"data":Publications,
+					})
 }
 
 //UpdatePublication handles admin to update Publications details
@@ -106,7 +112,10 @@ func UpdatePublication(c *gin.Context) {
 		return
 	}
 	config.DB.Save(&Publications)
-	c.JSON(http.StatusOK,Publications)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Publications updated succesfully",
+						"data":Publications,
+					})
 }
 
 //DeletePublication handles admin to delete Publications by id

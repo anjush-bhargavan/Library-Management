@@ -25,7 +25,10 @@ func GetAuthor(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK,Author)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Author fetched succesfully",
+						"data":Author,
+					})
 }
 
 // AddAuthors handle admin to add Authors to database
@@ -77,7 +80,10 @@ func ViewAuthors(c *gin.Context) {
 
 	config.DB.Find(&Authors)
 
-	c.JSON(http.StatusOK,Authors)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Authors fetched succesfully",
+						"data":Authors,
+					})
 }
 
 //UpdateAuthor handles admin to update Author details
@@ -109,7 +115,10 @@ func UpdateAuthor(c *gin.Context) {
 	}
 
 	config.DB.Save(&Author)
-	c.JSON(http.StatusOK,Author)
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Authors updated succesfully",
+						"data":Author,
+					})
 }
 
 //DeleteAuthor handles admin to delete Author by id

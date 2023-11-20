@@ -17,12 +17,6 @@ import (
 
 var validate =validator.New()
 
-//UserLoginPage handles get login page
-func UserLoginPage(c *gin.Context){
-	c.JSON(200,gin.H{
-		"message":"Login with email & password",
-	})
-}
 
 
 //UserLogin handles login and create jwt token
@@ -75,7 +69,6 @@ func UserLogin(c *gin.Context){
 
 		
 		c.Header("Authorization","Bearer "+token)
-		c.Redirect(http.StatusSeeOther,"/user/home")
 	}else{
 		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
 											"message":"Invalid password",
@@ -86,13 +79,6 @@ func UserLogin(c *gin.Context){
 
 }
 
-
-//UserSignupPage handles get signup page
-func  UserSignupPage(c *gin.Context){
-	c.JSON(200,gin.H{
-		"message":"Sign up to Continue",
-	})
-}
 
 
 var ctx = context.Background()
@@ -198,10 +184,6 @@ func UserSignup(c *gin.Context){
 }
 
 
-//VerifyOTPPage shows the verify otp
-func VerifyOTPPage(c *gin.Context) {
-	c.JSON(200,gin.H{"message":"verify otp"})
-}
 
 
 //VerifyOTP handles verifying otp and saving user data in database
@@ -253,7 +235,7 @@ func VerifyOTP(c *gin.Context) {
 			return
 		}
 		config.DB.Create(&userData)
-		c.JSON(http.StatusOK,gin.H{	"status":"Failed",
+		c.JSON(http.StatusOK,gin.H{	"status":"Success",
 									"message":"Signup successful",
 									"data":userData,
 								})
@@ -265,13 +247,10 @@ func VerifyOTP(c *gin.Context) {
 func HomePage(c *gin.Context){
 	data,_:=c.Get("email")
 	email:=data.(string)
-	c.JSON(200,gin.H{
-		"message":"Welcome to homepage "+email,
-	})
+
+	c.JSON(http.StatusOK,gin.H{	"status":"Success",
+								"message":"Welcome to homepage",
+								"data":email,
+							})
 }
 
-
-//UserLogout handles logout
-func UserLogout(c *gin.Context) {
-	c.Redirect(http.StatusSeeOther,"/login")
-}
