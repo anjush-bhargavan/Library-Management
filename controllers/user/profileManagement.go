@@ -6,11 +6,10 @@ import (
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"golang.org/x/crypto/bcrypt"
 )
-
-
 
 //UserProfile handles to get profile page of user
 func UserProfile(c *gin.Context) {
@@ -147,5 +146,32 @@ func ViewHistory(c *gin.Context) {
 	c.JSON(200,gin.H{	"status":"Success",
 						"message":"History fetched succesfully",
 						"data":history,
+					})
+}
+
+//ViewMyPlan shows the plan of user
+func ViewMyPlan(c *gin.Context) {
+	userIDContext,_ :=c.Get("user_id")
+	userID := userIDContext.(uint64)
+
+	var membership models.Membership
+
+	if err := config.DB.Where("user_id = ?",userID).First(&membership).Error; err == gorm.ErrRecordNotFound{
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Success",
+											"message":"You haven't taken membership",
+											"data":err.Error(),
+										})
+		return
+	}else if err != nil{
+		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
+										"message":"Error in getting membership",
+										"data":err.Error(),
+									})
+		return
+	}
+
+	c.JSON(200,gin.H{	"status":"Success",
+						"message":"Your membership",
+						"data":membership,
 					})
 }

@@ -10,6 +10,7 @@ type Book struct {
 	PublicationsID 	uint64 			`json:"publications_id" gorm:"not null" validate:"required"`
 	CategoryID     	uint64 			`json:"category_id" gorm:"not null" validate:"required"`
 	Description    	string 			`json:"description" gorm:"not null" validate:"required"`
+	Image			string			`json:"image"`
 	OrderCount      uint64			`json:"order_count"`
 	Rating			uint64			`json:"rating" gorm:"not null;default:5"`
 }

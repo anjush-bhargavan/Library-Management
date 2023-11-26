@@ -33,5 +33,6 @@ func ConnectDB(){
 		&models.RazorPay{},
 		&models.FeedBack{},
 		&models.Event{},
+		&models.Orders{},
 	)
 }

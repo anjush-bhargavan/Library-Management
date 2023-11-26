@@ -29,6 +29,20 @@ func DeliveryDetails(c *gin.Context) {
 										})
 	return
 	}
+	var fine models.FineList
+	if err := config.DB.Where("user_id = ?",userID).First(&fine).Error; err == nil {
+		c.JSON(http.StatusUnauthorized,gin.H{"status":"Failed",
+											"message":"You have to pay fine before borrowing books, Your fine is :",
+											"data":fine.Fine,
+										})
+		return
+	}else if err != gorm.ErrRecordNotFound{
+		c.JSON(http.StatusUnauthorized,gin.H{	"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+											})
+		return
+	}
 	bookID,_ :=strconv.Atoi(id)
 	bookIDUint := uint64(bookID)
 
@@ -50,7 +64,7 @@ func DeliveryDetails(c *gin.Context) {
 										"data":err.Error(),
 										})
 	}
-	if err :=config.DB.Model(&models.History{}).Where("book_id = ? AND status = ?",bookIDUint,"pending").Count(&pendingCount).Error; err!= nil{
+	if err :=config.DB.Model(&models.Orders{}).Where("book_id = ? AND status = ?",bookIDUint,"pending").Count(&pendingCount).Error; err!= nil{
 		c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
 										"message":"Error getting  order count",
 										"data":err.Error(),
@@ -70,24 +84,14 @@ func DeliveryDetails(c *gin.Context) {
 					"message":"Available date for delivery",
 					"data":Date,
 					})
-	var existingBookid uint64
+	// var existingBookid uint64
 
-	if err:=config.DB.Model(&models.BooksOut{}).Where("user_id = ?",userID).Pluck("BookID",&existingBookid).Error;err != nil{
-		c.JSON(http.StatusBadRequest,gin.H{"status":"Failed",
-											"message":"Database error",
-											"data":err.Error(),
-										})
-		return
-	}
-	if existingBookid==0{
-		c.JSON(200,gin.H{"status":"Success",
-						"message":"No books in hand",
-						"data":"",
-					})
-	}else{
+	// Model(&models.BooksOut{}).Where("user_id = ?",userID).Pluck("BookID",&existingBookid)
+	var existingBookOut models.BooksOut
+	if err:=config.DB.Where("user_id = ?",userID).First(&existingBookOut).Error;err == nil{
 		var existingBook models.Book
 
-		if err :=config.DB.First(&existingBook,existingBookid).Error; err != nil {
+		if err :=config.DB.First(&existingBook,existingBookOut.BookID).Error; err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"status":"Failed",
 											"message":"Book not found",
 											"data":err.Error(),
@@ -98,6 +102,18 @@ func DeliveryDetails(c *gin.Context) {
 						"message":"You have to return this book during delivery",
 						"data":existingBook,
 					})
+		
+	}else if err == gorm.ErrRecordNotFound{
+		c.JSON(200,gin.H{"status":"Success",
+						"message":"No books in hand",
+						"data":nil,
+					})
+	}else{
+		c.JSON(http.StatusBadRequest,gin.H{"status":"Failed",
+											"message":"Database error",
+											"data":err.Error(),
+										})
+		return
 	}
 		
 
@@ -122,23 +138,7 @@ func Delivery(c *gin.Context) {
 	userID:=userIDContext.(uint64)
 	userIDString:=fmt.Sprint(userID)
 
-	var history models.History
-
-	bookIDString,err:=config.Client.Get(ctx,"bookid"+userIDString).Result()
-	if err != nil {
-		c.JSON(http.StatusNotFound,gin.H{"status":"Failed",
-											"message":"BookID not found in redis",
-											"data":err,
-										})
-		return
-	}
-	bookID, _ := strconv.ParseUint(bookIDString, 0, 64)
-
-	history.BookID=bookID
-	history.UserID=userID
-	history.OrderedOn=time.Now()
-
-	var user models.History
+	var user models.Orders
 
 	if err:=config.DB.Where("user_id = ? AND status = ?",userID,"pending").First(&user).Error; err == nil {
 		c.JSON(http.StatusConflict,gin.H{"status":"Failed",
@@ -154,8 +154,54 @@ func Delivery(c *gin.Context) {
 		return
 	}
 
+	var order models.Orders
+
+	bookIDString,err:=config.Client.Get(ctx,"bookid"+userIDString).Result()
+	if err != nil {
+		c.JSON(http.StatusNotFound,gin.H{"status":"Failed",
+											"message":"BookID not found in redis",
+											"data":err,
+										})
+		return
+	}
+	bookID, _ := strconv.ParseUint(bookIDString, 0, 64)
+
+	order.BookID=bookID
+	order.UserID=userID
+	order.Type="delivery"
+	order.OrderedOn=time.Now()
+
+	var bookout models.BooksOut
+	if err := config.DB.Where("user_id = ?",userID).First(&bookout).Error; err == nil {
+		var returnOrder models.Orders
+
+		returnOrder.BookID=bookout.BookID
+		returnOrder.UserID=bookout.UserID
+		returnOrder.Type="return"
+		returnOrder.OrderedOn=time.Now()
+
+		if err :=config.DB.Create(&returnOrder).Error; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+												"message":"Database error",
+												"data":err,
+											})
+			return
+		}
+
+		c.JSON(200,gin.H{	"status":"Success",
+							"message":"Order placed, keep the other book ready during delivery",
+							"data":returnOrder,
+							})
+	}else if err != gorm.ErrRecordNotFound{
+		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+											"message":"Database error",
+											"data":err,
+										})
+		return
+	}
+
 	
-	if err :=config.DB.Create(&history).Error;err != nil{
+	if err :=config.DB.Create(&order).Error;err != nil{
 		c.JSON(http.StatusBadGateway,gin.H{"status":"Failed",
 											"message":"Database error",
 											"data":err,
@@ -165,18 +211,19 @@ func Delivery(c *gin.Context) {
 
 	c.JSON(200,gin.H{"status":"Success",
 					"message":"Order placed, keep the other book ready during delivery",
-					"data":history,
+					"data":order,
 					})
 }
 
 //CancelOrder function handles users to cancel their order
 func CancelOrder(c *gin.Context) {
+	Type := c.Query("type")
 	userIDContext,_ :=c.Get("user_id")
 	userID:=userIDContext.(uint64)
 
-	var user models.History
+	var user models.Orders
 
-	if err:=config.DB.Where("user_id = ? AND status = ?",userID,"pending").First(&user).Error; err != nil {
+	if err:=config.DB.Where("user_id = ? AND status = ? AND type = ?",userID,"pending",Type).First(&user).Error; err != nil {
 		c.JSON(http.StatusConflict,gin.H{"status":"Failed",
 										"message":"No order is pending",
 										"data":err,

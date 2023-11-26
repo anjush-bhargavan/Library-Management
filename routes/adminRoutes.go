@@ -18,4 +18,7 @@ func adminRoutes(r *gin.Engine) {
 	admin.CategoryRoutes(r)
 	admin.PublicationRoutes(r)
 	admin.OtherRoutes(r)
+	admin.MembershipRoutes(r)
+	admin.EventRoutes(r)
+	admin.RecordRoutes(r)
 }

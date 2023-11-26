@@ -164,7 +164,7 @@ func UserSignup(c *gin.Context){
 		return
 	}
 	
-	if err := config.Client.Set(ctx,"user"+user.Email,jsonData,30*time.Second).Err(); err != nil {
+	if err := config.Client.Set(ctx,"user"+user.Email,jsonData,120*time.Second).Err(); err != nil {
 		c.JSON(http.StatusInternalServerError,gin.H{"status":"Failed",
 													"message":"Redis error",
 													"data":err.Error(),

@@ -6,11 +6,12 @@ import (
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
+
 )
 
 //ViewOrders function handles the agent to view the orders that are pending
 func ViewOrders(c *gin.Context) {
-	var orders []models.History
+	var orders []models.Orders
 
 	if err:= config.DB.Where("status = ?","pending").Find(&orders).Error; err != nil {
 		c.JSON(http.StatusBadRequest,gin.H{	"status":"Failed",
@@ -30,7 +31,7 @@ func ViewOrders(c *gin.Context) {
 func GetOrder(c *gin.Context) {
 	orderID :=c.Param("id")
 
-	var order models.History
+	var order models.Orders
 	
 	if err := config.DB.Where("id = ?",orderID).First(&order).Error; err != nil{
 		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
@@ -46,26 +47,28 @@ func GetOrder(c *gin.Context) {
 		Phone		string
 		Address		string
 		BookName	string
+		Type 		string
 		OrderedOn	time.Time
 		Status		string
 	}
 	query := `
     SELECT 
-        histories.id,
+        orders.id,
         users.user_name,
         users.phone,
         users.address,
         books.book_name,
-        histories.ordered_on,
-        histories.status
+		orders.type,
+        orders.ordered_on,
+        orders.status
     FROM 
-        histories
+        orders
     JOIN 
-        users ON histories.user_id = users.user_id
+        users ON orders.user_id = users.user_id
     JOIN 
-        books ON histories.book_id = books.id
+        books ON orders.book_id = books.id
     WHERE 
-        histories.id = ?`
+        orders.id = ?`
 
 	if err := config.DB.Raw(query, order.ID).Scan(&result).Error; err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{	"status":"Failed",
@@ -84,11 +87,12 @@ func GetOrder(c *gin.Context) {
 
 //UpdateOrders fuction handles the update on the history table by agent using the user id 
 func UpdateOrders(c *gin.Context) {
-	type Order struct{
+	type Delivery struct{
 		UserID 		uint64	`json:"user_id"`
+		Type        string	`json:"type"`
 		Status 		string	`json:"status"`
 	}
-	var first Order
+	var first Delivery
 	if err := c.ShouldBindJSON(&first); err != nil {
 		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
 											"message":"Binding error",
@@ -97,17 +101,17 @@ func UpdateOrders(c *gin.Context) {
 	}
 
 	
-	
-	var Currentorder models.History
+	 
+	var Currentorder models.Orders
 
-	if err := config.DB.Where("user_id = ? AND status = ?",first.UserID,"pending").First(&Currentorder).Error; err != nil {
+	if err := config.DB.Where("user_id = ? AND status = ? AND type = ?",first.UserID,"pending",first.Type).First(&Currentorder).Error; err != nil {
 		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
 											"message":"Database error",
 											"data":err.Error(),
 										})
 		return
 	}
-	Currentorder.Status=first.Status
+	Currentorder.Status="ok"
 
 	if err := config.DB.Save(&Currentorder).Error; err != nil {
 		c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
@@ -116,7 +120,8 @@ func UpdateOrders(c *gin.Context) {
 										})
 		return
 	}
-	if first.Status=="delivered"{
+
+	if Currentorder.Type=="delivery"{
 		var bookout models.BooksOut
 		bookout.UserID=Currentorder.UserID
 		bookout.BookID=Currentorder.BookID
@@ -129,11 +134,41 @@ func UpdateOrders(c *gin.Context) {
 											})
 			return
 		}
+		var history models.History
+
+		history.UserID=Currentorder.UserID
+		history.BookID=Currentorder.BookID
+		history.RentedOn=time.Now()
+
+		if err := config.DB.Create(&history).Error ; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
+												"message":"Database error while creating history",
+												"data":err.Error(),
+											})
+			return
+		}
 	}
-	if first.Status=="returned"{
+	if Currentorder.Type=="return"{
+		var history models.History
+		if err :=config.DB.Where("user_id = ? AND book_id = ?",Currentorder.UserID,Currentorder.BookID).First(&history).Error; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+												})	
+			return					
+		}
+		history.Status="returned"
+		history.ReturnedOn=time.Now()
+		if err := config.DB.Save(&history).Error; err != nil {
+			c.JSON(http.StatusBadGateway,gin.H{"status":"Failed",
+												"message":"Database error",
+												"data":err.Error(),
+												})	
+		return		
+		}
 
 		var book models.Book
-		if err := config.DB.Where("book_id = ?",Currentorder.BookID).First(&book).Error;err != nil{
+		if err := config.DB.Where("id = ?",Currentorder.BookID).First(&book).Error;err != nil{
 			c.JSON(http.StatusBadGateway,gin.H{	"status":"Failed",
 												"message":"Database error",
 												"data":err.Error(),

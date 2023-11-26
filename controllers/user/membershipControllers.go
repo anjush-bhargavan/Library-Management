@@ -2,14 +2,17 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
 	"github.com/anjush-bhargavan/library-management/config"
 	"github.com/anjush-bhargavan/library-management/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/jung-kurt/gofpdf"
 	"github.com/razorpay/razorpay-go"
 	"gorm.io/gorm"
 )
@@ -121,7 +124,7 @@ func Membership(c *gin.Context){
 			c.JSON(http.StatusConflict,gin.H{
 											"status":"Failed",
 											"message":"Already have a membership",
-											"data":err.Error(),
+											"data":nil,
 										})
 			return
 	}else if err != gorm.ErrRecordNotFound {
@@ -314,14 +317,140 @@ func RazorpaySuccess(c *gin.Context) {
 // SuccessPage renders the success page.
 func SuccessPage(c *gin.Context) {
 	pID := c.Query("id")
+	userID :=c.Query("user_id")
 	fmt.Println(pID)
 	fmt.Println("Fully successful")
 
 	c.HTML(http.StatusOK, "success.html", gin.H{
 		"paymentID": pID,
+		"userID":userID,
 	})
 }
 
+//InvoiceDownload handles the user to download the invoice of membership
+func InvoiceDownload(c *gin.Context) {
+	userIDQuery :=c.Query("user_id")
+	userIDint,_:=strconv.Atoi(userIDQuery)
+	userID:=uint64(userIDint)
+	content, err := generateMembershipSubscription(userID)
+	if err != nil {
+		c.JSON(http.StatusBadGateway,gin.H{
+											"status":"Failed",
+											"message":"Failed to generate membership subscription PDF",
+											"data":err.Error(),
+										})
+		return
+	}
+
+	// Set headers for downloading the PDF
+	c.Header("Content-Disposition", "attachment; filename=membership_subscription.pdf")
+	c.Header("Content-Type", "application/pdf")
+	c.Data(http.StatusOK, "application/pdf", content)
+	
+}
+
+//generateMembershipSubscription function finds the details of member and generate invoice
+func generateMembershipSubscription(userID uint64) ([]byte, error) {
+    var result struct {
+        UserID                uint64
+        UserName              string
+        Phone                 string
+        Email                 string
+        Plan                  string
+        RazorpaySubscriptionID string
+        StartedOn             time.Time
+        ExpiresAt             time.Time
+    }
+
+    query := `
+    SELECT 
+        users.user_id,
+        users.user_name,
+        users.phone,
+        users.email,
+        memberships.plan,
+        memberships.razorpay_subscription_id,
+        memberships.started_on,
+        memberships.expires_at
+    FROM 
+        memberships
+    JOIN 
+        users ON memberships.user_id = users.user_id
+    WHERE 
+        memberships.user_id = ?`
+
+    if err := config.DB.Raw(query, userID).Scan(&result).Error; err != nil {
+        log.Println("error getting records from database")
+        return nil, err
+    }
+
+    pdf := gofpdf.New("P", "mm", "A4", "")
+  
+    pdf.AddPage()
+
+	pdf.SetFont("Times", "", 20)
+
+
+	pdf.SetFillColor(135, 206, 250) 
+	pdf.CellFormat(190, 10, "Golib.Online", "1", 0, "C", true, 0, "")
+
+
+	pdf.SetFont("Helvetica", "", 12)
+
+	
+	pdf.Ln(15)
+	pdf.SetFillColor(180, 200, 200) 
+	pdf.CellFormat(190, 10, "Thank you for taking the membership!", "1", 0, "C", true, 0, "")
+	pdf.Ln(15)
+
+	
+	pdf.SetFillColor(255, 255, 255) 
+
+
+	pdf.Cell(0, 10, fmt.Sprintf("User ID: %d", result.UserID))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("User Name: %s", result.UserName))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Phone: %s", result.Phone))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Email: %s", result.Email))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Plan: %s", result.Plan))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Razorpay Subscription ID: %s", result.RazorpaySubscriptionID))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Started On: %s", result.StartedOn.Format("01-Jan-2006")))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Expiration Date: %s", result.ExpiresAt.Format("01-Jan-2006")))
+    pdf.Ln(10)
+
+    pdf.Cell(0, 10, fmt.Sprintf("Generated on: %s", time.Now().Format("2006-01-02 15:04:05")))
+    pdf.Ln(10)
+
+    pdf.Ln(10)
+	pdf.MultiCell(0, 8, "You can now borrow books from Golib.Online and keep looking forward to an enriching reading experience.", "0", "L", false)
+    pdf.Ln(10)
+
+    if err := pdf.OutputFileAndClose("membership_subscription.pdf"); err != nil {
+        log.Println("error making pdf")
+        return nil, err
+    }
+
+    content, err := os.ReadFile("membership_subscription.pdf")
+    if err != nil {
+        log.Println("error reading pdf file")
+        return nil, err
+    }
+
+    return content, nil
+}
 
 
 
