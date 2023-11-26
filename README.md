@@ -8,6 +8,21 @@ Access the live demo of the Library Management System at [golib.online](https://
 
 ## Features
 
+## Changelog
+
+### Version 2 (2023-11-26)
+
+- Added email notifications for membership expiry and fines.
+- Added return feature for books.
+- Enhanced book viewing:
+  - View books by category, author.
+  - Sort by order count and rating.
+- Added order management table.
+- Added image field in the book table.
+- Introduced membership invoice download feature.
+- Admin routes for viewing books checked out, history, and orders.
+
+
 ### User Features
 
 - **Authentication:**
