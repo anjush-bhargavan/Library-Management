@@ -105,7 +105,7 @@ func BookByAuthor(c *gin.Context) {
 					})
 }
 
-
+	//Books type implements sort methods
 	type Books []models.Book
 
 	// Len returns the length of the Books slice.
@@ -130,6 +130,7 @@ func BookByAuthor(c *gin.Context) {
 		return b[i].Rating > b[j].Rating
 	}
 
+//SortByRating function sort the books by ordercount and rating then displays
 func SortByRating(c *gin.Context) {
 	page,_ :=strconv.Atoi(c.DefaultQuery("page","1"))
 	pageSize,_ :=strconv.Atoi(c.DefaultQuery("pageSize","5"))
