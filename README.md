@@ -85,7 +85,7 @@ Access the live demo of the Library Management System at [golib.online](https://
 
 ## API Documentation
 
-For detailed API documentation, refer to [API Documentation](https://golib.online/api/docs).
+For detailed API documentation, refer to [API Documentation](https://documenter.getpostman.com/view/30219361/2s9YeEdCnd).
 
 ## Contributing
 
