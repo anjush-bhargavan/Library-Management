@@ -87,13 +87,6 @@ Access the live demo of the Library Management System at [golib.online](https://
 
 For detailed API documentation, refer to [API Documentation](https://documenter.getpostman.com/view/30219361/2s9YeEdCnd).
 
-## Contributing
-
-If you'd like to contribute to the project, please follow the guidelines in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## License
-
-This project is licensed under the [Your License Name] License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ## Setup and Installation
 
